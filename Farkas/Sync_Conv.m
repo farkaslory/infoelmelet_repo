@@ -1,7 +1,7 @@
 trellis = poly2trellis(7,[115 147],147);
 ErrP=[]
 n=700
-
+parpool(15) %Hány példányban fusson párhuzamosan: magok száma -1 az ajénlott
 for snr=1:0.1:10
     hiba=zeros(1,20000);
     parfor k=1:20000
