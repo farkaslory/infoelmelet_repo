@@ -1,5 +1,6 @@
 clear
 LdpcErr_2=[]
+parpool(15) %Hány példányban fusson párhuzamosan: magok száma -1 az ajénlott
 for snr=1:0.1:10
     error=zeros(1,1000);
     parfor k=1:1000
