@@ -5,6 +5,7 @@ cfgLDPCDec = ldpcDecoderConfig(H);
 n = cfgLDPCEnc.NumInformationBits;
 BlockLengthHalf = cfgLDPCDec.BlockLength/2;trellis = poly2trellis(7,[115 147],147);
 Ldpc_ErrP=[]
+parpool(15) %Hány példányban fusson párhuzamosan: magok száma -1 az ajénlott
 for snr=1:0.1:10
     hiba=zeros(1,20000);
     parfor k=1:20000
