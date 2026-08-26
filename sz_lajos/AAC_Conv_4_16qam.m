@@ -51,7 +51,7 @@ for snr = 7:0.1:10
 
         %--- CSATORNA ---
         %rxSymbols = txSymbols;   % TESZT: zaj kikapcsolva       
-        rxSymbols = awgn(txSymbols,10);
+        rxSymbols = awgn(txSymbols,snr);
 
         %--- VEVŐ MODUL (szukcesszív dekódolás) ---
         decodedData = receiveAAC(rxSymbols,K,n,sigma2,trellis);
@@ -72,7 +72,7 @@ for snr = 7:0.1:10
 end
 
 figure
-plot(1:0.1:10,Err)
+plot(7:0.1:10,Err)
 xlabel('SNR [dB]'); ylabel('BER'); grid on
 title('AAC 4-QAM/16-QAM BER görbe')
 
@@ -201,7 +201,7 @@ function cleaned = cleanBlock(yBlock,knownFineIQ)
     %maradék jel amplitúdója megegyezzen egy önálló 4-QAM jelével.
     knownFine = ((1-2*knownFineIQ(:,1)) + 1i*(1-2*knownFineIQ(:,2)))/sqrt(10);
     residual = yBlock - knownFine;
-    cleaned = residual*1 %sqrt(5)/2;
+    cleaned = residual* sqrt(5)/2;
 end
 
 function v = interleaveIQ(colI,colQ,n)
