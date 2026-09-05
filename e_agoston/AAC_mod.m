@@ -1,4 +1,8 @@
 clear;
+
+%%FONTOS!!! 
+% kell ehhez a kódhoz a 'read_alist_2.m' fv. és a 'make_h_encodable.h' fv. hogy működjön!
+
 % Ez a script egy adott mappában lévő alist-fájlokban leírt LDPC-kódokon
 % (parity-check mátrixokon) fut le sorban, és mindegyikhez leméri a
 % bithiba-arányát (BER) egy SNR-tartományon.
