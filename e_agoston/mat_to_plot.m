@@ -14,27 +14,33 @@ close all; clc; clear;
 % snr_range - ez azt adja meg, hogy milyen pontossággal futtattuk le a
 %   kódot, ez pl. egy olyan dolog, hogy 2:0,5:8 (2-től 8-ig 0,5-ösével a számok)
 %
-%   Kis extra megjegyzés, érdemes nem több mint 7 file-t beolvastatni vele,
-% mert 7 külömböző file után már újra használja ugyan azokat a színeket,
-% és ilyenkor nem lehet megkülömbüttetni egymástól a kódokat.
+% (Frissítve: A kód hsv színskálát használ keverve, így 20-30 görbe is
+% jól látható és elkülöníthető marad a fekete háttéren.)
+
 %% Mappa beolvasása
-folderName = 'Random LDPCk mat';
+folderName = 'Random LDPCk sync mat';
 list = dir(fullfile(folderName, '*.mat'));
 nFiles = length(list);   % 'size'-t szándékosan nem használjuk változónévként,
 % mert az felülírná a beépített size() függvényt
 if nFiles == 0
     error('Nem talalhatoak .mat fajlok a "%s" mappaban! Ellenorizd a mappa nevet.', folderName);
 end
+
 %% Ábra létrehozása és a háttér beállítása
 figure('Name', 'BER osszehasonlitas', 'NumberTitle', 'off', ...
     'Color', 'black', 'Position', [100, 100, 900, 650]);
 hold on;
-% Egyedi szín minden görbének, még akkor is, ha 7-nél több fájl van
-colors = lines(nFiles);
+
+% Színek kiosztása sok (20-30+) görbéhez
+palette = hsv(nFiles);          % hsv skála (élénk színek fekete háttérhez)
+rng(42);                        % fix seed, hogy a színek ne ugráljanak újrafuttatáskor
+colors = palette(randperm(nFiles), :); % keverés, hogy a szomszédos fájlok ne legyenek hasonlóak
+
 % Marker csak minden n-edik ponton, hogy ne törje meg a görbe simaságát
 markerEvery = 1;   % ha durvább SNR-lépésközöd van (pl. 2:0.5:8), hagyd 1-en
 % finomabb lépésköznél (pl. 1:0.1:10) érdemes 5-10-re állítani
 legendText = cell(nFiles, 1);
+
 %% Görbék kirajzolása fájlonként
 for i = 1:nFiles
     currentFileName = list(i).name;
@@ -42,6 +48,7 @@ for i = 1:nFiles
     data = load(filePath);
     nPts = numel(data.snr_range);
     markIdx = 1:markerEvery:nPts;   % hány pontonként jelenjen meg a marker
+    
     semilogy(data.snr_range, data.LdpcErr_2, ...
         'LineWidth', 1.7, ...
         'Color', colors(i, :), ...
@@ -49,10 +56,12 @@ for i = 1:nFiles
         'MarkerSize', 4, ...
         'MarkerFaceColor', colors(i, :), ...
         'MarkerIndices', markIdx);
+        
     [~, baseName, ~] = fileparts(currentFileName);
     legendText{i} = baseName;
 end
 hold off;
+
 %% Tengelyek és rács formázása
 set(gca, 'YScale', 'log');   % BER-nél a logaritmikus y-tengely a szokásos
 grid on;
@@ -63,6 +72,7 @@ ax.FontSize = 11;
 ax.LineWidth = 1;
 ax.GridAlpha = 0.25;
 ax.MinorGridAlpha = 0.08;
+
 %% Feliratok, legenda és y-tartomány
 xlabel('SNR [dB]', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Bithiba arany (BER)', 'FontSize', 12, 'FontWeight', 'bold');
