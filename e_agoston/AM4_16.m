@@ -1,4 +1,6 @@
 function [LdpcErr_2, n, BlockLengthHalf, place] = AM4_16(H, numTrials, K, snr_range, calcPlace)
+%Ez a Lajos kódja, de az én kódomnak a változó neveivel...
+
 % AM4_16  Szimulacios mag az AAC lanchoz, 4-QAM / 16-QAM modulacioval.
 %
 % Az AM2_4 (BPSK/QPSK) parja: ugyanaz a lanc-logika, de tengelyenkent ket
