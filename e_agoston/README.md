@@ -16,4 +16,19 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
     az általunk választott függvénnyel (pl. Sync_Ldpc.m, Async_Ldpc.m, AM4_16 vagy AM2_4) lefuttatott 
     szimulációnak az eredményeit .mat file-formátumban. 
       Ezeknek a .mat file-oknak megegyezik a nevük a .alist eredet file-aival.
-  ### Segéd függvények
+  ## AAC_mod.m segéd függvényei
+
+  ### read_alist_2.m
+    Ez a függvény egyszerűen kinyeri a .alist file-ból a kellő információkat, mint maga a H mátrix az eredeti
+    formájában (N*M-es mátrix GF(2)-ben), az N-et és az M-et. Az N az oszlopok száma, míg M a sorok száma.
+    A függvény a következő módon néz ki a kódban: 
+      [H, N, M] = read_alist_2(fileName)
+    Lehet látni, hogy megadjuk a függvénynek .alist file nevét, és ebből kinyeri a H, N és M 
+    paramétereket.
+
+
+
+
+
+
+    
