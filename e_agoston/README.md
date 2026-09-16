@@ -39,9 +39,39 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
     kódban a read_alist_2-nek a kimeneténél az M-et egy ~-vel helyettesítettem).
     Továbbá, ezt a függvényt a read_alist_2 után kell meghívni, hogy legyen már egy kész, .alist formátumból 
     kiolvasott H mátrixunk.
-  ## AAC_mod.m-nek a választható belső függvényei
+  ## AAC_mod.m-nek a választható belső függvényei (a kód 70. sora)
 
-  ### 
+  ### Sync_Ldpc.m
+    Ez egy általános szinkron modulációt szimuláló kód, amelyhez fogom hasonlítani majd az egyéb aszinkron 
+    modulációt szimuláló fügvényeket. A függvényt a következő képpen kell meghívni:
+      [BlockLengthHalf, n, LdpcErr_2] = Sync_Ldpc(H, snr_range, numTrials)
+      
+      Meg kell neki adni a már .alist-ből kiolvasott, és make_H_encodable-en átfuttatott H mátrixot, az 
+    általunk kiválasztott snr_range-et (pl. 2:0.5:8), és azt hogy egy snr alatt milyen "finomsággal" fusson
+    le a program, magasabb szám általában pontosabb számolást jelent, de megnöveli a program futtatási idejét.
+    Hasonlóan az snr_range is befojásolja a program futtatási idejét, mivel többször fog lefutni a szimuláció
+    (pl. 2:0.5:8-as snr legfeljebb 12 ponton fogja jelezni az eredményeit a programnak). A H mátrixon kívül 
+    mindegyik bemeneti változónak van alap beállítása, pl. az snr_range az említett 2:0.5:8, 
+    a numTrials meg 20000, ami szignifikánsan nagyobb mint az aszinkron függvényben, de mivel itt egymáson 
+    vannak a kódbblockkok, ezért itt a pontosság miatt ez a standard.
+      A kimenete meg a BlockLenghtHalf, ami csak a N/2, az n, ami a N-M és a LdpcErr_2, ami pedig a snr-enként
+    mért hiba aránya a kódnak.
+
+  ### Async_Ldpc.m
+    Az eredeti, a tanár úr által írt aszinkron modulációt szimuláló kód egy függvénbe rakva. Ez a program a
+    szinkronnal ellentétben a kód blockkokat nem egymásra rakja pontosan a block kódokat, míg az aszinkron eltolja 
+    a block kódokat egymáshoz képest valamilyen arányban. Ez tesztelésben jobb hiba arányokhoz vezetett.
+    A függvényt a következő képpen kell meghívni:
+      [BlockLengthHalf, n, LdpcErr_2] = Async_Ldpc(H, snr_range, K, numTrials)
+      
+      Itt az adatok csak annyiban térnek el a szinkron verziójától, hogy itt meg lehet adni egy K változót, 
+    amely a kódblock-oknak a számát határozza meg (ez alapból 20). A numTrials itt 1000, mivel magasabb 
+    beállításon szignifikánsan hosszabb ideig futna a program, és itt nem szinkron módon vannak egymásra rakva
+    a kódszavak, ezért itt hasonló pontosság eléréséért csak 1000-es numTrials-t kell használni.
+      A kimenet megegyzik az összes többi függvénnyel.
+
+  ### AM2_4
+
 
     
 
