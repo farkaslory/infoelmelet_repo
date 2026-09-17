@@ -22,7 +22,9 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
     Ez a függvény egyszerűen kinyeri a .alist file-ból a kellő információkat, mint maga a H mátrix az eredeti
     formájában (N*M-es mátrix GF(2)-ben), az N-et és az M-et. Az N az oszlopok száma, míg M a sorok száma.
     A függvény a következő módon néz ki a kódban: 
+    
       [H, N, M] = read_alist_2(fileName)
+      
     Lehet látni, hogy megadjuk a függvénynek .alist file nevét, és ebből kinyeri a H, N és M 
     paramétereket.
   ### make_H_encodable.m
@@ -34,16 +36,18 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
     invertálható részmátrix álljon — ez nem változtatja meg a kód hibajavító tulajdonságait, csak a kódolhatóság 
     technikai feltételét teljesíti.
     A függvényt a következő képpen kell kódba belerakni:
+    
       [H, M] = make_h_encodable(H)
-    Mivel ez a kód ad egy M-et, ezért nem feltétlenül kell a read_alist_2-ből az M-et felhasználni (pl. az fő
-    kódban a read_alist_2-nek a kimeneténél az M-et egy ~-vel helyettesítettem).
-    Továbbá, ezt a függvényt a read_alist_2 után kell meghívni, hogy legyen már egy kész, .alist formátumból 
-    kiolvasott H mátrixunk.
+      
+      Mivel ez a kód ad egy M-et, ezért nem feltétlenül kell a read_alist_2-ből az M-et felhasználni (pl. az 
+    fő kódban a read_alist_2-nek a kimeneténél az M-et egy ~-vel helyettesítettem). Továbbá, ezt a függvényt a
+    read_alist_2 után kell meghívni, hogy legyen már egy kész, .alist formátumból kiolvasott H mátrixunk.
   ## AAC_mod.m-nek a választható belső függvényei (a kód 70. sora)
 
   ### Sync_Ldpc.m
     Ez egy általános szinkron modulációt szimuláló kód, amelyhez fogom hasonlítani majd az egyéb aszinkron 
     modulációt szimuláló fügvényeket. A függvényt a következő képpen kell meghívni:
+    
       [BlockLengthHalf, n, LdpcErr_2] = Sync_Ldpc(H, snr_range, numTrials)
       
       Meg kell neki adni a már .alist-ből kiolvasott, és make_H_encodable-en átfuttatott H mátrixot, az 
@@ -62,6 +66,7 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
     szinkronnal ellentétben a kód blockkokat nem egymásra rakja pontosan a block kódokat, míg az aszinkron eltolja 
     a block kódokat egymáshoz képest valamilyen arányban. Ez tesztelésben jobb hiba arányokhoz vezetett.
     A függvényt a következő képpen kell meghívni:
+    
       [BlockLengthHalf, n, LdpcErr_2] = Async_Ldpc(H, snr_range, K, numTrials)
       
       Itt az adatok csak annyiban térnek el a szinkron verziójától, hogy itt meg lehet adni egy K változót, 
@@ -73,6 +78,7 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
   ### AM2_4
     Levente által készített kód, mely 2 bitet egy szimbólumba kódol. Ezt lehet összehasonlítani a Sync_Ldpc-vel.
     A függvényt a következő képpen hívjuk meg:
+    
       [BlockLengthHalf, n, LdpcErr_2] = AM2_4(H, snr_range, K, numTrials)
 
       Itt a bemeneti és kimeneti változók megegyeznek az eddigi konvenciókkal.
@@ -80,6 +86,7 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
     Lajos által készített kód, mely 4 bitet egy szimbólumba kódol. Ezt még az eddigi Sync_Ldpc-vel nem lehet 
     össze hasonlítani, erre külön szinkron kódot kell írni, amely szintén 4 bitet egy szimbólumba kódol.
     A függvént A következő képpen hívjuk meg:
+    
       [BlockLengthHalf, n, LdpcErr_2] = AM4_16(H, snr_range, K, numTrials)
 
       Itt hasonlóan, a bemeneti és kimeneti változók megegyeznek.
