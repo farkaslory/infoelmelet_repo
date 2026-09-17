@@ -71,8 +71,18 @@ Az én feladatom a LDPC kódok irányábol megközelíteni a tanár úr ötleté
       A kimenet megegyzik az összes többi függvénnyel.
 
   ### AM2_4
+    Levente által készített kód, mely 2 bitet egy szimbólumba kódol. Ezt lehet összehasonlítani a Sync_Ldpc-vel.
+    A függvényt a következő képpen hívjuk meg:
+      [BlockLengthHalf, n, LdpcErr_2] = AM2_4(H, snr_range, K, numTrials)
 
+      Itt a bemeneti és kimeneti változók megegyeznek az eddigi konvenciókkal.
+  ### AM4_16
+    Lajos által készített kód, mely 4 bitet egy szimbólumba kódol. Ezt még az eddigi Sync_Ldpc-vel nem lehet 
+    össze hasonlítani, erre külön szinkron kódot kell írni, amely szintén 4 bitet egy szimbólumba kódol.
+    A függvént A következő képpen hívjuk meg:
+      [BlockLengthHalf, n, LdpcErr_2] = AM4_16(H, snr_range, K, numTrials)
 
+      Itt hasonlóan, a bemeneti és kimeneti változók megegyeznek.
     
 
 
