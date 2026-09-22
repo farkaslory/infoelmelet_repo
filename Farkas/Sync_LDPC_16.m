@@ -3,16 +3,16 @@ function [Ldpc_ErrP, n, BlockLengthHalf] = Sync_LDPC_16(H, maxFrames, snrRange)
 %
 % Bemenetek:
 %   H         - Paritásellenőrző mátrix (sparse logical)
-%   maxFrames - Keretek száma SNR pontonként (alapértelmezett: 1000)
-%   snrRange  - SNR vektor [dB]             (alapértelmezett: 2:0.5:8)
+%   maxFrames - Keretek száma SNR pontonként (alapértelmezett: 20000)
+%   snrRange  - SNR vektor [dB]             (alapértelmezett: 5:25)
 %
 % Kimenetek:
 %   Ldpc_ErrP       - Átlagos bithibaarány (BER) vektor
 %   n               - Információs bitek száma blokkonként
 %   BlockLengthHalf - Fél kódszóhossz bitben
 
-if nargin < 3 || isempty(snrRange),  snrRange  = 2:0.5:8; end
-if nargin < 2 || isempty(maxFrames), maxFrames = 1000;    end
+if nargin < 3 || isempty(snrRange),  snrRange  = 5:25; end
+if nargin < 2 || isempty(maxFrames), maxFrames = 20000;    end
 
 cfgLDPCEnc = ldpcEncoderConfig(H);
 cfgLDPCDec = ldpcDecoderConfig(H);
@@ -32,7 +32,7 @@ for s_idx = 1:length(snrRange)
         data = randi([0 1], n, 1, 'int8');
         codedData = ldpcEncode(data, cfgLDPCEnc);
 
-        % Független QPSK szimbólumok képzése (2 bit / szimbólum)
+        % Független QPSK szimbólumok képzése (4 bit / szimbólum)
         cD1 = reshape(codedData, 4, [])';
         input1 = bi2de(cD1, "left-msb");
         input = qammod(input1, 16, "UnitAveragePower",true);
