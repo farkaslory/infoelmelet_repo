@@ -19,8 +19,9 @@ snrRange_AM24  = 1:0.5:6;   % QPSK tartomány (2 bit/szimbólum)
 snrRange_AM416 = 15:1:30;    % 16-QAM tartomány (4 bit/szimbólum)
 
 maxFrames = 1000;            % Keretszám SNR pontonként
+K = 20;             % Kódszavak száma az aszinkron láncban
 maxFramesSync = K*maxFrames;
-K         = 20;             % Kódszavak száma az aszinkron láncban
+
 
 txtFiles = dir(fullfile(inputFolder, '*.txt'));
 numFiles = length(txtFiles);
