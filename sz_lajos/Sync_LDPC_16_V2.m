@@ -9,14 +9,15 @@ function [Ldpc_ErrP, n, BlockLengthHalf, FER] = Sync_LDPC_16_V2(H, maxFrames, sn
 %   H              - Paritásellenőrző mátrix (sparse logical)
 %   maxFrames      - Keretek száma SNR pontonként   (alapértelmezett: 1000)
 %   snrRange       - SNR vektor [dB], Es/N0         (alapértelmezett: 2:0.5:8)
-%   useAacLabeling - 
-%                    Szabványos GRAY leképezés -- ez a
-%                    valódi, tisztességes referencia.
-%                    Ugyanaz a NEM Gray leképezés, amit az AAC lánc
-%                    kénytelen használni (buildSymOrder). Ez a kontrollgörbe
-%                    választja szét, hogy egy esetleges AAC-vs-szinkron
-%                    különbségből mennyi származik pusztán a leképezésből, és
-%                    mennyi a SIC szerkezetéből.
+%   useAacLabeling - Bitleképezés választása          (alapértelmezett: false)
+%                    false: szabványos GRAY leképezés -- ez a valódi,
+%                           tisztességes referencia.
+%                    true:  ugyanaz a NEM Gray leképezés, amit az AAC lánc
+%                           kénytelen használni (buildSymOrder). Ez a
+%                           kontrollgörbe választja szét, hogy egy esetleges
+%                           AAC-vs-szinkron különbségből mennyi származik
+%                           pusztán a leképezésből, és mennyi a SIC
+%                           szerkezetéből.
 %
 % Kimenetek:
 %   Ldpc_ErrP       - Átlagos bithibaarány (BER) vektor
@@ -73,13 +74,14 @@ for s_idx = 1:length(snrRange)
         input = qammod(input1, 16, symOrd, "UnitAveragePower", true);   
 
         output = awgn(input, snr, 'measured');
-        output1 = qamdemod(output, 16, symOrd, 'UnitAveragePower', true, 
-                            'OutputType', 'llr', 'NoiseVariance', N0);  
+        output1 = qamdemod(output, 16, symOrd, 'UnitAveragePower', true, ...
+                           'OutputType', 'llr', 'NoiseVariance', N0);
 
         decodedData = ldpcDecode(output1, cfgLDPCDec, maxnumiter);
 
-        hiba(k)      = biterr(data, decodedData);
-        hibaKeret(k) = hiba(k) > 0;              
+        nErr         = biterr(data, decodedData);
+        hiba(k)      = nErr;
+        hibaKeret(k) = nErr > 0;
     end
 
     Ldpc_ErrP(s_idx) = mean(hiba) / n;
