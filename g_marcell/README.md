@@ -23,6 +23,6 @@ Megjelenítő script. Ellenőrzi és betölti az elmentett AM4_16M_WRAN_results.
 
 Használat
 
-A szimulációhoz ezen 4 fájlon kívül szükséges a két bemeneti fájl (WRAN_N480_K320_P20_R066.txt, WRAN_N480_K360_P20_R075). A run_AM4_16M.m script lefutása után futtassuk a plotresults_AM4_16M.m a grafikon és a görbék kirajzolásához. 
+A szimulációhoz ezen 4 fájlon kívül szükséges a két bemeneti fájl (WRAN_N480_K320_P20_R066.txt, WRAN_N480_K360_P20_R075.txt). A run_AM4_16M.m script lefutása után futtassuk a plotresults_AM4_16M.m a grafikon és a görbék kirajzolásához. 
 
 _______________________________________________
