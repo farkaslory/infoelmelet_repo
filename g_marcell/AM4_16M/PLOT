@@ -1,1 +1,77 @@
 
+
+function fig = plot_AM4_16M(resultsInput)
+% plot_AM4_16M_WRAN A ket WRAN BER-gorbe kozos megjelenitese.
+%
+%   fig = plot_AM4_16M_WRAN(results)
+%   fig = plot_AM4_16M_WRAN('AM4_16M_WRAN_results.mat')
+%
+% Y tengely: bithibaarany (BER), logaritmikus skalan.
+% X tengely: normalizalt oneBitPart, -1 es +1 kozott.
+% A ket WRAN kod ugyanazon a tengelyen, kulon labellel jelenik meg.
+
+if nargin < 1 || isempty(resultsInput)
+    resultsInput = 'AM4_16M_WRAN_results.mat';
+end
+
+if ischar(resultsInput) || (isstring(resultsInput) && isscalar(resultsInput))
+    loaded = load(char(resultsInput), 'results');
+    if ~isfield(loaded, 'results')
+        error('plot_AM4_16M_WRAN:missingResults', ...
+            'A MAT-fajl nem tartalmaz results valtozot.');
+    end
+    results = loaded.results;
+elseif isstruct(resultsInput)
+    results = resultsInput;
+else
+    error('plot_AM4_16M_WRAN:inputType', ...
+        'A bemenet results struktura vagy MAT-fajlnev lehet.');
+end
+
+required = {'noiseDbm','asyncSnrDb','oneBitPart','codes'};
+if ~all(isfield(results, required)) || numel(results.codes) ~= 2
+    error('plot_AM4_16M_WRAN:invalidResults', ...
+        'A results struktura hianyos, vagy nem pontosan ket kodot tartalmaz.');
+end
+
+fig = figure('Color', 'w', 'Name', 'AM4\_16M WRAN BER');
+ax = axes(fig);
+hold(ax, 'on');
+colors = lines(numel(results.codes));
+lineStyles = {'-o','-s'};
+
+for codeIdx = 1:numel(results.codes)
+    ber = results.codes(codeIdx).ber;
+    if ~isvector(ber) || numel(ber) ~= numel(results.oneBitPart)
+        error('plot_AM4_16M_WRAN:berSize', ...
+            'A(z) %d. kod BER-vektora nem egyezik a oneBitPart tengellyel.', ...
+            codeIdx);
+    end
+
+    if isfield(results.codes, 'label') && ...
+            ~isempty(results.codes(codeIdx).label)
+        curveLabel = results.codes(codeIdx).label;
+    else
+        curveLabel = strrep(results.codes(codeIdx).fileName, '_', '\_');
+    end
+
+    semilogy(ax, results.oneBitPart, ber(:).', lineStyles{codeIdx}, ...
+        'Color', colors(codeIdx,:), ...
+        'LineWidth', 1.5, ...
+        'MarkerSize', 5, ...
+        'DisplayName', curveLabel);
+end
+
+grid(ax, 'on');
+box(ax, 'on');
+xlim(ax, [-1 1]);
+xticks(ax, -1:0.1:1);
+xlabel(ax, 'oneBitPart');
+ylabel(ax, 'Bithibaarany (BER)');
+title(ax, sprintf( ...
+    '4-QAM/16-QAM: noise = %g dBm, async SNR = %g dB', ...
+    results.noiseDbm, results.asyncSnrDb));
+legend(ax, 'Location', 'best');
+hold(ax, 'off');
+end
+
