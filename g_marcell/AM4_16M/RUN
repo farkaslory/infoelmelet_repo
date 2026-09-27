@@ -1,1 +1,292 @@
 
+
+%% run_AM4_16M_WRAN
+% A ket WRAN ALIST LDPC kod AM4_16M szimulaciojanak futtatoscriptje.
+%
+% Ez a fajl script, nem fuggveny. Nem keszit abrat. A futas utan a
+% `results` struktura a munkaterben marad, es MAT-fajlba is elmentodik.
+% Az abrazolas kulon futtatoscriptje:
+%
+%   show_AM4_16M_WRAN
+
+%% Beallitasok
+scriptFolder = fileparts(mfilename('fullpath'));
+if isempty(scriptFolder)
+    scriptFolder = pwd;
+end
+
+dataFolder = scriptFolder;
+resultsFile = fullfile(scriptFolder, 'AM4_16M_WRAN_results.mat');
+
+maxFrames = 1000;
+K = 20;
+noiseDbm = -80;
+asyncSnrDb = 8;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%oneBitPart = -1:0.1:1;
+oneBitPart = -1:0.1 :1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+codeFiles = { ...
+    'WRAN_N480_K360_P20_R075.txt', ...
+    'WRAN_N480_K320_P20_R066.txt'};
+codeLabels = { ...
+    'WRAN R=0.75 (N=480, K=360)', ...
+    'WRAN R=0.66 (N=480, K=320)'};
+
+%% Eredmenystruktura
+results = struct();
+results.functionName = 'AM4_16M';
+results.noiseDbm = noiseDbm;
+results.asyncSnrDb = asyncSnrDb;
+results.signalPowerDbm = noiseDbm + asyncSnrDb;
+results.noisePowerWatts = 10^((noiseDbm - 30) / 10);
+results.signalPowerWatts = 10^((results.signalPowerDbm - 30) / 10);
+results.oneBitPart = oneBitPart;
+results.maxFrames = maxFrames;
+results.K = K;
+results.codes = repmat(struct( ...
+    'fileName', '', ...
+    'label', '', ...
+    'n', [], ...
+    'blockLength', [], ...
+    'parityCheckRows', [], ...
+    'parityCheckNnz', [], ...
+    'maxColumnWeight', [], ...
+    'maxRowWeight', [], ...
+    'oneBitPartLength', [], ...
+    'ber', []), 1, numel(codeFiles));
+
+%% A ket WRAN kod futtatasa
+for codeIdx = 1:numel(codeFiles)
+    fileName = codeFiles{codeIdx};
+    filePath = fullfile(dataFolder, fileName);
+    if ~isfile(filePath)
+        error('run_AM4_16M_WRAN:missingFile', ...
+            ['A szukseges ALIST kodfajl nem talalhato:\n  %s\n' ...
+             'Masold mindket WRAN .txt fajlt a szkript mappajaba.'], ...
+            filePath);
+    end
+
+    nameToken = regexp(fileName, 'N(\d+)_K(\d+)', 'tokens', 'once');
+    if isempty(nameToken)
+        error('run_AM4_16M_WRAN:fileName', ...
+            'Az N es K ertek nem olvashato ki a fajlnevbol: %s', fileName);
+    end
+    expectedN = str2double(nameToken{1});
+    expectedInformationBits = str2double(nameToken{2});
+
+    [H, alistInfo] = loadWranAlistSparse( ...
+        filePath, expectedN, expectedInformationBits);
+
+    fprintf(['Betoltve: %s | H: %d x %d | nnz: %d | ' ...
+        'sparse logical: %d\n'], fileName, size(H,1), size(H,2), ...
+        nnz(H), issparse(H) && islogical(H));
+
+    ber = zeros(1, numel(oneBitPart));
+    partLengths = zeros(1, numel(oneBitPart));
+    informationBits = [];
+
+    for partIdx = 1:numel(oneBitPart)
+        fprintf('  oneBitPart = %+0.1f (%d/%d)\n', ...
+            oneBitPart(partIdx), partIdx, numel(oneBitPart));
+
+        [berNow, nNow, partLengths(partIdx)] = AM4_16M( ...
+            H, maxFrames, K, noiseDbm, 0, ...
+            oneBitPart(partIdx), asyncSnrDb);
+
+        ber(partIdx) = berNow;
+        if isempty(informationBits)
+            informationBits = nNow;
+        elseif informationBits ~= nNow
+            error('run_AM4_16M_WRAN:informationLength', ...
+                'Az informacios bitszam futas kozben megvaltozott.');
+        end
+    end
+
+    if informationBits ~= expectedInformationBits
+        error('run_AM4_16M_WRAN:codeDimension', ...
+            ['Az LDPC konfiguracio K=%d informacios bitet adott, ' ...
+             'de a fajlnev K=%d erteket jelez.'], ...
+            informationBits, expectedInformationBits);
+    end
+
+    results.codes(codeIdx).fileName = fileName;
+    results.codes(codeIdx).label = codeLabels{codeIdx};
+    results.codes(codeIdx).n = informationBits;
+    results.codes(codeIdx).blockLength = size(H, 2);
+    results.codes(codeIdx).parityCheckRows = size(H, 1);
+    results.codes(codeIdx).parityCheckNnz = nnz(H);
+    results.codes(codeIdx).maxColumnWeight = alistInfo.maxColumnWeight;
+    results.codes(codeIdx).maxRowWeight = alistInfo.maxRowWeight;
+    results.codes(codeIdx).oneBitPartLength = partLengths;
+    results.codes(codeIdx).ber = ber;
+end
+
+save(resultsFile, 'results', '-v7.3');
+fprintf('Az eredmeny elmentve: %s\n', resultsFile);
+fprintf('Kulon abrazolas: plotresults_AM4_16M\n');
+
+%% Belso segedfuggveny: WRAN ALIST -> sparse logical H
+function [H, info] = loadWranAlistSparse( ...
+        filePath, expectedN, expectedInformationBits)
+% A tamogatott ALIST szerkezet:
+%   1. sor: N M
+%   2. sor: max_oszlopsuly max_sorsuly
+%   3. sor: N darab oszlopsuly
+%   4. sor: M darab sorsuly
+%   kovetkezo N sor: oszloponkenti sorindexek, nullakkal feltoltve
+%   kovetkezo M sor: soronkenti oszlopindexek, nullakkal feltoltve
+
+fid = fopen(filePath, 'rt');
+if fid < 0
+    error('run_AM4_16M_WRAN:fileOpen', ...
+        'A fajl nem nyithato meg olvasasra: %s', filePath);
+end
+cleanupObj = onCleanup(@() fclose(fid)); %#ok<NASGU>
+
+values = fscanf(fid, '%f');
+if numel(values) < 4
+    error('run_AM4_16M_WRAN:alistHeader', ...
+        'Hianyos ALIST fejlec: %s', filePath);
+end
+if any(~isfinite(values)) || any(values ~= floor(values))
+    error('run_AM4_16M_WRAN:alistInteger', ...
+        'Az ALIST fajl csak veges egesz ertekeket tartalmazhat: %s', filePath);
+end
+
+nColumns = values(1);
+nRows = values(2);
+maxColumnWeight = values(3);
+maxRowWeight = values(4);
+
+if nColumns <= 0 || nRows <= 0 || ...
+        maxColumnWeight <= 0 || maxRowWeight <= 0
+    error('run_AM4_16M_WRAN:alistDimensions', ...
+        'Ervenytelen ALIST meret- vagy sulyadat: %s', filePath);
+end
+
+expectedRows = expectedN - expectedInformationBits;
+if nColumns ~= expectedN || nRows ~= expectedRows
+    error('run_AM4_16M_WRAN:alistFileNameMismatch', ...
+        ['Az ALIST fejlec szerint H merete %d x %d, a fajlnev alapjan ' ...
+         'azonban %d x %d kell legyen.'], ...
+        nRows, nColumns, expectedRows, expectedN);
+end
+
+expectedValueCount = 4 + nColumns + nRows + ...
+    nColumns*maxColumnWeight + nRows*maxRowWeight;
+if numel(values) ~= expectedValueCount
+    error('run_AM4_16M_WRAN:alistValueCount', ...
+        ['Az ALIST fajl elemszama hibas. Elvart: %d, kapott: %d. ' ...
+         'Ellenorizd, hogy minden szomszedsagi sor teljes-e.'], ...
+        expectedValueCount, numel(values));
+end
+
+next = 5;
+columnWeights = values(next:next+nColumns-1);
+next = next + nColumns;
+rowWeights = values(next:next+nRows-1);
+next = next + nRows;
+
+if any(columnWeights < 0 | columnWeights > maxColumnWeight) || ...
+        any(rowWeights < 0 | rowWeights > maxRowWeight)
+    error('run_AM4_16M_WRAN:alistWeights', ...
+        'Oszlop- vagy sorsuly a deklaralt maximumon kivul van.');
+end
+
+columnAdjacencyCount = nColumns * maxColumnWeight;
+columnAdjacency = reshape( ...
+    values(next:next+columnAdjacencyCount-1), ...
+    maxColumnWeight, nColumns).';
+next = next + columnAdjacencyCount;
+
+rowAdjacencyCount = nRows * maxRowWeight;
+rowAdjacency = reshape( ...
+    values(next:next+rowAdjacencyCount-1), ...
+    maxRowWeight, nRows).';
+
+edgeCountFromColumns = sum(columnWeights);
+edgeCountFromRows = sum(rowWeights);
+if edgeCountFromColumns ~= edgeCountFromRows
+    error('run_AM4_16M_WRAN:alistEdgeCount', ...
+        ['Az oszlopsulyok osszege (%d) nem egyezik a sorsulyok ' ...
+         'osszegevel (%d).'], edgeCountFromColumns, edgeCountFromRows);
+end
+
+% Sparse matrix epitese az oszlop-szomszedsagi listabol.
+columnList = zeros(edgeCountFromColumns, 1);
+rowList = zeros(edgeCountFromColumns, 1);
+position = 0;
+for columnIdx = 1:nColumns
+    weight = columnWeights(columnIdx);
+    activeRows = columnAdjacency(columnIdx, 1:weight);
+    padding = columnAdjacency(columnIdx, weight+1:end);
+
+    if any(activeRows < 1 | activeRows > nRows) || ...
+            numel(unique(activeRows)) ~= numel(activeRows)
+        error('run_AM4_16M_WRAN:alistColumnAdjacency', ...
+            'Ervenytelen vagy ismetlodo sorindex a(z) %d. oszlopban.', ...
+            columnIdx);
+    end
+    if any(padding ~= 0)
+        error('run_AM4_16M_WRAN:alistColumnPadding', ...
+            'Az oszloplista kitolto ertekei nem nullak a(z) %d. oszlopban.', ...
+            columnIdx);
+    end
+
+    target = position + (1:weight);
+    rowList(target) = activeRows;
+    columnList(target) = columnIdx;
+    position = position + weight;
+end
+HfromColumns = sparse(rowList, columnList, ...
+    ones(edgeCountFromColumns,1), nRows, nColumns);
+
+% Fuggetlen sparse matrix epitese a sor-szomszedsagi listabol.
+rowListCheck = zeros(edgeCountFromRows, 1);
+columnListCheck = zeros(edgeCountFromRows, 1);
+position = 0;
+for rowIdx = 1:nRows
+    weight = rowWeights(rowIdx);
+    activeColumns = rowAdjacency(rowIdx, 1:weight);
+    padding = rowAdjacency(rowIdx, weight+1:end);
+
+    if any(activeColumns < 1 | activeColumns > nColumns) || ...
+            numel(unique(activeColumns)) ~= numel(activeColumns)
+        error('run_AM4_16M_WRAN:alistRowAdjacency', ...
+            'Ervenytelen vagy ismetlodo oszlopindex a(z) %d. sorban.', ...
+            rowIdx);
+    end
+    if any(padding ~= 0)
+        error('run_AM4_16M_WRAN:alistRowPadding', ...
+            'A sorlista kitolto ertekei nem nullak a(z) %d. sorban.', ...
+            rowIdx);
+    end
+
+    target = position + (1:weight);
+    rowListCheck(target) = rowIdx;
+    columnListCheck(target) = activeColumns;
+    position = position + weight;
+end
+HfromRows = sparse(rowListCheck, columnListCheck, ...
+    ones(edgeCountFromRows,1), nRows, nColumns);
+
+if nnz(HfromColumns) ~= edgeCountFromColumns || ...
+        nnz(HfromRows) ~= edgeCountFromRows || ...
+        ~isequal(HfromColumns, HfromRows)
+    error('run_AM4_16M_WRAN:alistInconsistent', ...
+        ['Az oszlop- es sor-szomszedsagi listak nem ugyanazt a ' ...
+         'paritasellenorzo matrixot irjak le.']);
+end
+
+H = sparse(logical(HfromColumns));
+info = struct( ...
+    'nColumns', nColumns, ...
+    'nRows', nRows, ...
+    'nnz', nnz(H), ...
+    'maxColumnWeight', maxColumnWeight, ...
+    'maxRowWeight', maxRowWeight);
+end
+
