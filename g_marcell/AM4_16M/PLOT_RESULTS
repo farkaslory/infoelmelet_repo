@@ -1,1 +1,18 @@
+%% show_AM4_16M_WRAN
+% A run_AM4_16M_WRAN szkript altal mentett eredmeny megjelenitese.
+% A ket WRAN kod gorbeje ugyanazon a grafikonon jelenik meg.
+
+scriptFolder = fileparts(mfilename('fullpath'));
+if isempty(scriptFolder)
+    scriptFolder = pwd;
+end
+
+resultsFile = fullfile(scriptFolder, 'AM4_16M_WRAN_results.mat');
+if ~isfile(resultsFile)
+    error('plotresults_AM4_16M:missingResults', ...
+        ['Az eredmenyfajl nem talalhato:\n  %s\n' ...
+         'Eloszor futtasd a run_AM4_16M szkriptet.'], resultsFile);
+end
+
+figureHandle = plot_AM4_16M(resultsFile);
 
