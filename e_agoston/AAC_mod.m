@@ -67,7 +67,7 @@
     
             %% LDPC szimuláció SNR-enként
     
-            [LdpcErr_2, n, BlockLengthHalf, ~] = AM4_16(H, numTrials, K, snr_range);% Ide kell beilleszteni az áhított algoritmust, csak figyelni kell rá, hogy a BlockLengthHalf, n és a LdpcErr_2 az ki legyen valahol számolva (általában az algoritmus adja vissza)
+            % Ide kell beilleszteni az áhított algoritmust, csak figyelni kell rá, hogy a BlockLengthHalf, n és a LdpcErr_2 az ki legyen valahol számolva (általában az algoritmus adja vissza)
     
             %% Eredmény mentése
             save(outputPath, 'BlockLengthHalf', 'n', 'K', 'LdpcErr_2', 'snr_range');% szinkron-van is el lesz mentve a K, de valójában nincsen felhasználva
