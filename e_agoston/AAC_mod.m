@@ -85,4 +85,4 @@
     maxnumiter = 10;
     EstimatedInfBits = ldpcDecode(LogLikelihoodRation, Params, maxnumiter);
     end
-    fprintf("A program lefutott.\n");
+    %fprintf("A program lefutott.\n");
