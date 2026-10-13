@@ -8,7 +8,7 @@ if nargin < 3 || isempty(K), K = 20; end
 if nargin < 2 || isempty(maxFrames), maxFrames = 1000; end
 
 % calcPlace - (0/1) Logikai kapcsoló a 'place' vektor kiszámításához (csak parfor nélkül használható)
-% calcPlace = 0;
+calcPlace = 0;
 
 % --- MÁTRIX TÍPUSKORREKCIÓ (A dekóder sparse logical típusú mátrixot igényel) ---
 if ~issparse(H) || ~islogical(H)
@@ -132,10 +132,10 @@ for snr_idx = 1:length(snrRange)
 
     error_count(k_idx) = sum(ErrCount) / K;
 
-    %if calcPlace && any(ErrCount ~= 0)
-    %  [~, j_max] = max(ErrCount);
-    %  place(j_max) = place(j_max) + 1;
-    %end
+    if calcPlace && any(ErrCount ~= 0)
+      [~, j_max] = max(ErrCount);
+      place(j_max) = place(j_max) + 1;
+    end
   end
 
   TurboErr(snr_idx) = mean(error_count) / n;

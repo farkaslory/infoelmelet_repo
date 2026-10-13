@@ -32,7 +32,7 @@ switch funcName
         place = [];
 
     otherwise
-        [ber, n, bl, place] = targetFunc(H, opts.maxFrames, opts.K, opts.snrRange, opts.calcPlace);
+        [ber, n, bl, place] = targetFunc(H, opts.maxFrames, opts.K, opts.snrRange);
 end
 
 % Egységesített eredménystruktúra összeállítása

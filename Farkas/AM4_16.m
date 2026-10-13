@@ -1,10 +1,12 @@
 function [TurboErr, n, BlockLength, place] = AM4_16(H, maxFrames, K, snrRange)
 % AM4_16 Szimulációs mag az AAC lánchoz, 4-QAM / 16-QAM modulációval. (Párhuzamosított)
 
-% calcPlace = 0;
 if nargin < 4 || isempty(snrRange),  snrRange  = 1:0.5:5;  end
 if nargin < 3 || isempty(K),         K         = 20;       end
 if nargin < 2 || isempty(maxFrames), maxFrames = 1000;     end
+
+% calcPlace - (0/1) Logikai kapcsoló a 'place' vektor kiszámításához (csak parfor nélkül használható)
+calcPlace = 0;
 
 maxIter = 10;   
 

@@ -37,7 +37,7 @@ end
 
 % Automatikus fájlnév-címke a korábbi plotter kompatibilitáshoz
 switch funcName
-    case "Sync_LDPC",    saveTag = "Sync_QPSK";
+    case "Sync_Ldpc",    saveTag = "Sync_QPSK";
     case "Sync_LDPC_16", saveTag = "Sync_16QAM";
     otherwise,           saveTag = funcName;
 end

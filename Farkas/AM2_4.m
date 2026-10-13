@@ -6,13 +6,13 @@ function [TurboErr, n, BlockLength, place] = AM2_4(H, maxFrames, K, snrRange)
 %   K         - Kódolt blokkok száma (alapértelmezett: 20)
 %   snrRange  - SNR (Jel-zaj viszony) tartomány vektor
 
-% calcPlace - (0/1) Logikai kapcsoló a 'place' vektor kiszámításához (csak parfor nélkül használható)
-% calcPlace = 0;
-
 % Alapértelmezett értékek kezelése, ha nem adnánk meg mindent
 if nargin < 4 || isempty(snrRange), snrRange = 1:0.5:5; end
 if nargin < 3 || isempty(K), K = 20; end
 if nargin < 2 || isempty(maxFrames), maxFrames = 1000; end
+
+% calcPlace - (0/1) Logikai kapcsoló a 'place' vektor kiszámításához (csak parfor nélkül használható)
+calcPlace = 0;
 
 % Kódoló és Dekódoló objektumok inicializálása
 cfgLDPCEnc = ldpcEncoderConfig(H);
@@ -88,10 +88,10 @@ for snr_idx = 1:length(snrRange)
         
         error_count(k_idx) = sum(ErrCount)/K;
         
-        %if calcPlace && any(ErrCount ~= 0)
-        %    [~, j_max] = max(ErrCount);
-        %    max_err_pos(k_idx) = j_max;
-        %end
+        if calcPlace && any(ErrCount ~= 0)
+            [~, j_max] = max(ErrCount);
+            max_err_pos(k_idx) = j_max;
+        end
     end
     
     % A place vektor frissítése a parfor cikluson kívül
