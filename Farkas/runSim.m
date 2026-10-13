@@ -12,7 +12,7 @@ arguments
     inputFolder  (1,1) string = "bemeneti_matrixok"
     outputFolder (1,1) string = "osszehasonlito_eredmenyek"
     opts.maxFrames     (1,1) double = 1000
-    opts.snrRange      (1,:) double = 15:0.5:25
+    opts.snrRange      (1,:) double = 5:0.5:15
     opts.K             (1,1) double = 20
 end
 
