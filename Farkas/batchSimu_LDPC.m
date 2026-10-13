@@ -48,7 +48,7 @@ function batchSimu(inputFolder, outputFolder, snrRange, maxFrames, K)
         
             % 2. Szimuláció futtatása a magfüggvénnyel
             % Paraméterek: H, maxFrames, K, snrRange, calcPlace (0 vagy 1)
-            [TurboErr, n, BlockLengthHalf, place] = AM4_16(H_sparse, maxFrames, K, snrRange, 1);
+            [TurboErr, n, BlockLengthHalf, place] = AM4_16_mod(H_sparse, maxFrames, K, snrRange, 1);
         
             % 3. Eredmények kimentése a .mat fájlba
             save(matOutputPath, 'TurboErr', 'n', 'BlockLengthHalf', 'snrRange', 'place');

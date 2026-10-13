@@ -1,7 +1,7 @@
-function [TurboErr, n, BlockLengthHalf, place] = AM4_16(H, maxFrames, K, snrRange, calcPlace)
+function [TurboErr, n, BlockLength, place] = AM4_16(H, maxFrames, K, snrRange)
 % AM4_16 Szimulációs mag az AAC lánchoz, 4-QAM / 16-QAM modulációval. (Párhuzamosított)
 
-if nargin < 5 || isempty(calcPlace), calcPlace = 0;        end
+% calcPlace = 0;
 if nargin < 4 || isempty(snrRange),  snrRange  = 1:0.5:5;  end
 if nargin < 3 || isempty(K),         K         = 20;       end
 if nargin < 2 || isempty(maxFrames), maxFrames = 1000;     end
@@ -118,10 +118,10 @@ for snr_idx = 1:numel(snrRange)
         end
         error_count(k_idx) = sum(ErrCount) / K;
 
-        if calcPlace && any(ErrCount ~= 0)
-            [~, j_max] = max(ErrCount);
-            max_err_pos(k_idx) = j_max;
-        end
+        %if calcPlace && any(ErrCount ~= 0)
+        %    [~, j_max] = max(ErrCount);
+        %    max_err_pos(k_idx) = j_max;
+        %end
     end
 
     if calcPlace

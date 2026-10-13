@@ -4,8 +4,8 @@ function batchSimu(inputFolder, outputFolder, snrRange, maxFrames, K)
     % Ha nincsenek megadva paraméterek, alapértelmezetteket használunk
     if nargin < 1, inputFolder = 'Matrixok'; end
     if nargin < 2, outputFolder = 'Eredmenyek'; end
-    if nargin < 3, snrRange = 1:0.5:5; end
-    if nargin < 4, maxFrames = 100; end
+    if nargin < 3, snrRange = 5:25; end
+    if nargin < 4, maxFrames = 1000; end
     if nargin < 5, K = 20; end
 
     % Ellenőrizzük, létezik-e a bemeneti mappa
@@ -46,7 +46,7 @@ function batchSimu(inputFolder, outputFolder, snrRange, maxFrames, K)
         
             % 2. Szimuláció futtatása a magfüggvénnyel
             % Paraméterek: H, maxFrames, K, snrRange, calcPlace (0 vagy 1)
-            [TurboErr, n, BlockLengthHalf, place] = AM4_16(H_sparse, maxFrames, K, snrRange, 1);
+            [TurboErr, n, BlockLengthHalf, place] = AM4_16_mod(H_sparse, maxFrames, K, snrRange, 1);
         
             % 3. Eredmények kimentése a .mat fájlba
             save(matOutputPath, 'TurboErr', 'n', 'BlockLengthHalf', 'snrRange', 'place');

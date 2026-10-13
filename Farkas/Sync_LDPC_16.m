@@ -1,4 +1,4 @@
-function [Ldpc_ErrP, n, BlockLengthHalf] = Sync_LDPC_16(H, maxFrames, snrRange)
+function [Ldpc_ErrP, n, BlockLength] = Sync_LDPC_16(H, maxFrames, snrRange)
 % SYNC_LDPC Szinkron referencia átvitel QPSK modulációval és LDPC/BP dekódolással.
 %
 % Bemenetek:
@@ -18,6 +18,7 @@ cfgLDPCEnc = ldpcEncoderConfig(H);
 cfgLDPCDec = ldpcDecoderConfig(H);
 
 n               = cfgLDPCEnc.NumInformationBits;
+BlockLength     = cfgLDPCDec.BlockLength / 2;
 BlockLengthHalf = cfgLDPCDec.BlockLength / 2;
 maxnumiter      = 10; % Belief Propagation iterációszám (megegyezik az AM2_4-gyel)
 
