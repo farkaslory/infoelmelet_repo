@@ -1,24 +1,24 @@
-function [BlockLengthHalf, n, LdpcErr_2] = Sync_Ldpc(H, snr_range, numTrials)
+function [BlockLength, n, LdpcErr_2] = Sync_Ldpc(H, snr_range, numTrials)
 % SYNC_LDPC  Egyfelhasznalos (nem szuperponalt), szinkron QPSK-s LDPC
 % BER-szimulacio, parfor-ral parhuzamositva.
 %
 % Bemenet:
 %   H         - parity-check matrix (mar "encoder-ready", pl. make_h_encodable utan)
-%   snr_range - a lefuttatando SNR-ertekek (dB), pl. 2:0.5:8
+%   snr_range - a lefuttatando SNR-ertekek (dB), pl. 5:0.5:15
 %   numTrials - (opcionalis) probak szama SNR-ertekenkent, alapertelmezett 20000
 %a
 % Kimenet:
-%   BlockLengthHalf - a H matrix N kodszohosszanak fele (QPSK szimbolumok szama / kodszo)
+%   BlockLength     - a H matrix N kodhossza (QPSK szimbolumok szama / kodszo)
 %   n               - az adott kodnak az infobit hossza (N-M)
 %   LdpcErr_2       - BER-ertekek vektora, snr_range-nek megfelelo sorrendben
 %
 % Hasznalat a fo scriptben (a H mar make_h_encodable-on atesett valtozat legyen):
 %   K = 1; % ebben a semaban nincs tobbszoros szuperpozicio, csak dokumentacios celra tartjuk meg
-%   [BlockLengthHalf, n, LdpcErr_2] = Sync_Ldpc(H, snr_range);
-%   save(outputPath, 'BlockLengthHalf', 'n', 'K', 'LdpcErr_2', 'snr_range');
+%   [BlockLength, n, LdpcErr_2] = Sync_Ldpc(H, snr_range);
+%   save(outputPath, 'BlockLength', 'n', 'K', 'LdpcErr_2', 'snr_range');
 
 if nargin < 2 || isempty(snr_range)
-    snr_range = 2:0.5:8;     
+    snr_range = 5:0.5:15;     
 end
 if nargin < 3 || isempty(numTrials)
     numTrials = 20000;
@@ -28,7 +28,7 @@ end
 cfgLDPCEnc = ldpcEncoderConfig(H);
 cfgLDPCDec = ldpcDecoderConfig(H);
 n = cfgLDPCEnc.NumInformationBits;
-BlockLengthHalf = cfgLDPCDec.BlockLength / 2;
+BlockLength = cfgLDPCDec.BlockLength;
 
 %% Parhuzamos pool inditasa (ha meg nincs futo)
 % FONTOS: ha ezt a fuggvenyt tobbszor hivod meg egymas utan (pl.
@@ -46,7 +46,7 @@ for snr = snr_range
     parfor k = 1:numTrials
         data = randi([0 1], n, 1);
         codedData = ldpcEncode(data, cfgLDPCEnc);
-        cD1 = reshape(codedData, [2, BlockLengthHalf])';   % FONTOS: n helyett BlockLengthHalf!
+        cD1 = reshape(codedData, [2, BlockLength/2])';   % FONTOS: n helyett BlockLength/2!
         input1 = bi2de(cD1, "left-msb");
         input = pskmod(input1, 4, pi/4);
         output = awgn(input, snr);
