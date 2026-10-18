@@ -18,7 +18,7 @@ cfgLDPCEnc = ldpcEncoderConfig(H);
 cfgLDPCDec = ldpcDecoderConfig(H);
 
 n               = cfgLDPCEnc.NumInformationBits;
-BlockLength     = cfgLDPCDec.BlockLength / 2;
+BlockLength     = cfgLDPCDec.BlockLength;
 BlockLengthHalf = cfgLDPCDec.BlockLength / 2;
 maxnumiter      = 10; % Belief Propagation iterációszám (megegyezik az AM2_4-gyel)
 
