@@ -1,4 +1,4 @@
-function [TurboErr, n, BlockLengthHalf, place] = AM4_16_Bidir(H, maxFrames, K, snrRange, calcPlace, mMid)
+function [TurboErr, n, BlockLengthHalf, place] = AM4_16_Bidir(H, maxFrames, K, snrRange, calcPlace, mMid, mirrorTx)
 % AM4_16_Bidir  Ketiranyu (kozepen talalkozo) szukcessziv dekodolas, 4-QAM / 16-QAM.
 %
 % Az ADO pontosan ugyanaz, mint az AM4_16-ban:
@@ -15,12 +15,20 @@ function [TurboErr, n, BlockLengthHalf, place] = AM4_16_Bidir(H, maxFrames, K, s
 %          j. blokkbol -> a FINOM 4-QAM marad (a (j-1). kodszo vege), zaj x 5.
 %   KOZEP  (j = mMid): mindket fele mar tisztitott 4-QAM, ezt dekodolom utoljara.
 %
+% mirrorTx = true (alapertelmezett): TUKROZOTT ADO a szabadalom szerint.
+%   A hatso tartomanyban (blokk b = mMid+1 .. K) megcserelodik a szerep:
+%     DURVA = (b-1). kodszo VEGE, FINOM = b. kodszo ELEJE.
+%   Igy hatrafele is a FINOM reszt vonom le (zaj x 5/4, mint elore), es egy
+%   hibas dekodolas a tisztitott blokkban LLR~0-t (torlest) okoz, nem
+%   magabiztosan rossz LLR-t. mirrorTx = false -> a regi (nem tukrozott) viselkedes.
+%
 %% --- Alapertelmezett parameterek -----------------------------------------
 if nargin < 5 || isempty(calcPlace), calcPlace = 0;        end
 if nargin < 4 || isempty(snrRange),  snrRange  = 1:0.5:5;  end
 if nargin < 3 || isempty(K),         K         = 20;       end
 if nargin < 2 || isempty(maxFrames), maxFrames = 1000;     end
 if nargin < 6 || isempty(mMid),      mMid      = floor(K/2) + 1; end
+if nargin < 7 || isempty(mirrorTx),  mirrorTx  = true;     end
 
 maxIter = 10;   % belief propagation iteracioszam
 
@@ -95,8 +103,14 @@ for snr_idx = 1:numel(snrRange)
         input = zeros((K+1)*nSym, 1);
         input(1:nSym) = qammod(idx4(half1IQ{1}), 4, symOrd4, 'UnitAveragePower', true);
         for j = 1:K-1
-            input(nSym*j+1 : nSym*(j+1)) = ...
-                qammod(idx16(half1IQ{j+1}, half2IQ{j}), 16, symOrd16, 'UnitAveragePower', true);
+            if mirrorTx && (j+1 > mMid)
+                % hatso tartomany: DURVA = j. kodszo vege, FINOM = (j+1). kodszo eleje
+                sIdx = idx16(half2IQ{j}, half1IQ{j+1});
+            else
+                % elso tartomany: DURVA = (j+1). kodszo eleje, FINOM = j. kodszo vege
+                sIdx = idx16(half1IQ{j+1}, half2IQ{j});
+            end
+            input(nSym*j+1 : nSym*(j+1)) = qammod(sIdx, 16, symOrd16, 'UnitAveragePower', true);
         end
         input(nSym*K+1 : nSym*(K+1)) = qammod(idx4(half2IQ{K}), 4, symOrd4, 'UnitAveragePower', true);
 
@@ -138,24 +152,36 @@ for snr_idx = 1:numel(snrRange)
             llrB2 = qamdemod(output(blk(j+1)), 4, symOrd4, 'UnitAveragePower', true, ...
                              'OutputType', 'llr', 'NoiseVariance', N0*nvFac(j+1));
 
-            % Elso fel: a j. blokk DURVA bitjei (finomra marginalizalva)
+            % Elso fel: a j. blokk bitjei a j. kodszobol
+            %   tukrozott ADO: FINOM bitek (durvara marginalizalva)
+            %   regi ADO     : DURVA bitek (finomra marginalizalva)
             yA   = output(blk(j));
             llrA = qamdemod(yA, 16, symOrd16, 'UnitAveragePower', true, ...
                             'OutputType', 'llr', 'NoiseVariance', N0*nvFac(j));
             llrA = reshape(llrA, 4, nSym);                 % sorok: cI, fI, cQ, fQ
-            llrCoarse = reshape(llrA([1 3], :), [], 1);
+            if mirrorTx
+                llrFirst = reshape(llrA([2 4], :), [], 1);
+            else
+                llrFirst = reshape(llrA([1 3], :), [], 1);
+            end
 
-            LlrActual = [llrCoarse, llrB2]';
+            LlrActual = [llrFirst, llrB2]';
             decodedData{j} = ldpcDecode(LlrActual(:), cfgLDPCDec, maxIter);
 
-            % TISZTITAS: durva resz levonasa a j. blokkbol -> a (j-1). kodszo
-            % vegenek finom 4-QAM-ja marad
+            % TISZTITAS a j. blokkban -> a (j-1). kodszo vege marad 4-QAM-kent
             cDe = reencodeHalves(decodedData{j}, cfgLDPCEnc, BlockLengthHalf);
             cIQ = reshape(cDe(:,1), [2 nSym])';
-            knownCoarse = 2 * ((1 - 2*cIQ(:,1)) + 1i*(1 - 2*cIQ(:,2))) * FINE_SCALE;
-
-            output(blk(j)) = (yA - knownCoarse) * BWD_GAIN;
-            nvFac(j)       = nvFac(j) * BWD_NVFAC;
+            if mirrorTx
+                % FINOM resz levonasa (mint elore): durva marad, zaj x 5/4
+                knownFine = ((1 - 2*cIQ(:,1)) + 1i*(1 - 2*cIQ(:,2))) * FINE_SCALE;
+                output(blk(j)) = (yA - knownFine) * FWD_GAIN;
+                nvFac(j)       = nvFac(j) * FWD_NVFAC;
+            else
+                % DURVA resz levonasa: finom marad, zaj x 5
+                knownCoarse = 2 * ((1 - 2*cIQ(:,1)) + 1i*(1 - 2*cIQ(:,2))) * FINE_SCALE;
+                output(blk(j)) = (yA - knownCoarse) * BWD_GAIN;
+                nvFac(j)       = nvFac(j) * BWD_NVFAC;
+            end
         end
 
         % ===== KOZEP: j = mMid, mindket fele tiszta 4-QAM =================
