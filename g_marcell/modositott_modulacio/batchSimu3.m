@@ -80,7 +80,8 @@ if ~isempty(legend_labels)
     num2str(oneBitPart,'%3.2f')]);
   xlabel(ax_all, 'Jel-Zaj viszony (SNR) [dB]');
   ylabel(ax_all, 'Bithibaarány (BER)');
-  legend(ax_all, legend_labels, 'Interpreter', 'none', 'Location', 'bestoutside');
+ % legend(ax_all, legend_labels, 'Interpreter', 'none', 'Location', 'bestoutside');
+  legend(ax_all, legend_labels, 'Interpreter', 'none', 'Location', 'best');
   
   summaryPicPath = fullfile(outputFolder, ...
     ['Osszesitett_Eredmenyek_' num2str(oneBitPart,'%3.2f') '.png']);
