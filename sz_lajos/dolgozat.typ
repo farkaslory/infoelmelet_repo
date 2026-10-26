@@ -351,10 +351,9 @@ mennyiben marad meg.
 // =====================================================================
 //  3. FEJEZET – Az átfedéses modulációs eljárás
 
-//  Új hivatkozás kell a refs.bib-be: wachsmann1999 (lásd a fájl végén).
 // =====================================================================
 
-// Ábrahely a saját MATLAB-ábráitoknak (cseréld #image(...)-re)
+
 #let abrahely(szoveg) = rect(
   width: 100%, height: 5.5cm, radius: 3pt,
   stroke: (paint: luma(160), thickness: 0.6pt, dash: "dashed"),
@@ -376,8 +375,6 @@ A rendszer felépítése a következő (@fig:blokkvazlat). Az adó $L$ darab, eg
 bit hosszú kódszót ($bold(c)_1, dots, bold(c)_L$) állít elő ugyanazzal a
 csatornakódolóval. Minden kódszót két, $n$ bites félre bontunk:
 $bold(c)_k = (bold(c)_k^((1)), bold(c)_k^((2)))$.
-// TODO: ha a felek nem az első/második n bit, hanem a páratlan/páros bitek
-// (mint az AM2_4-ben: reshape(codedData,[2 BlockLengthHalf])'), azt itt írd le.
 Az átfedéses modulátor az egymást követő kódszavakat úgy képezi le, hogy a $k$-adik
 kódszó második fele és a $(k+1)$-edik kódszó első fele *ugyanazokon* a szimbólumokon
 osztozik. A vevő a láncot az egyik végéről kezdve kódszavanként dekódolja, és minden
@@ -564,7 +561,7 @@ Az algoritmusban szereplő LLR-képletek levezetése később következik
     v(2pt)
     enum(
       [$k = 1$: az első fél LLR-jei a $bold(y)_0$ 4-QAM blokkból.],
-      [A $k$-adik kódszó második felének LLR-jei a $bold(y)_k$ blokk *finom*
+      [A $k$-adik kódszó második felének LLR-jei @eq:llr-finom a $bold(y)_k$ blokk *finom*
         bitjeiből, ismeretlen durva réteg mellett,  szerint;
         $k = L$ esetén a $bold(y)_L$ 4-QAM blokkból.],
       //@eq:llr-finom ezeket majd később használom csak az arész még nincs kész 
@@ -574,9 +571,9 @@ Az algoritmusban szereplő LLR-képletek levezetése később következik
       [Tisztítás: $tilde(bold(y))_k = bold(y)_k - hat(bold(x))_k^"finom"$.
         Helyes becslés esetén $tilde(bold(y))_k$ egy $2 \/ sqrt(10)$ amplitúdójú
         4-QAM jel.],
-      [A $(k+1)$-edik kódszó első felének LLR-jei a tisztított blokkból
+      [A $(k+1)$-edik kódszó első felének LLR-jei  @eq:llr-durva a tisztított blokkból
         a  szerint; $k <- k + 1$, vissza a 2. lépésre.],
-        //@eq:llr-durva
+        //
     )
     v(2pt)
     text(size: 9pt, fill: luma(70))[A megvalósításban a tisztított blokkot
@@ -651,7 +648,200 @@ mellett a Gray-kiosztás hibáját a belső pontok tagja uralja, és ugyanahhoz 
 hibavalószínűséghez négyszeres (6 dB-lel nagyobb) jel-zaj viszony kell, mint a saját
 kiosztásnál. A saját kiosztás tehát a tisztított félben jobb.
 
-=====================================================================
+=== A tisztítás: kemény és lágy <sec:tisztitas>
+
+A szukcesszív vevő kulcslépése a tisztítás: a $k$-adik kódszó dekódolása után a finom
+réteg hozzájárulását eltávolítjuk, hogy a $(k+1)$-edik kódszó durva bitjei
+megbízhatóbbak legyenek. Két irányban módosíthatjuk az alapeljárást: a bitkiosztással
+(Gray vagy saját, @tab:kiosztas) és a tisztítás módjával (kemény vagy lágy). Az
+alábbiakban megmutatjuk, mit jelent a kettő, és milyen előnyökkel, hátrányokkal jár.
+
+*A finom bitek LLR-je.* <sec:llr-finom> A tisztítás előtt a finom bitekről úgy kell lágy becslést
+adni, hogy a durva réteg még ismeretlen. Tengelyenként
+$u = (2 beta(d) + beta(f)) \/ sqrt(10) + w_u$, $w_u tilde.op cal(N)(0, N_0 \/ 2)$, és a
+durva bitet a két lehetséges értékére marginalizálva a saját kiosztásnál
+$ L(f | u) = ln (e^(-(u - 3\/sqrt(10))^2 \/ N_0) + e^(-(u + 1\/sqrt(10))^2 \/ N_0))
+                / (e^(-(u - 1\/sqrt(10))^2 \/ N_0) + e^(-(u + 3\/sqrt(10))^2 \/ N_0)). $ <eq:llr-finom>
+(A Gray-kiosztásnál a számlálóban a $plus.minus 3$, a nevezőben a $plus.minus 1$ szintek
+állnak.)
+*Kemény tisztítás, saját kiosztás.* A dekódolt kódszót újrakódoljuk, és a becsült
+finom réteget kivonjuk:
+$ tilde(u) = u - beta(hat(f)) / sqrt(10), quad
+  L(d | tilde(u)) = 8 / (sqrt(10) N_0) tilde(u). $ <eq:llr-durva>
+Helyes $hat(f)$ esetén a durva bit egy kétszeres léptékű 4-QAM-ban jelenik meg, ez a
+saját kiosztás távolságnyeresége (@sec:tisztitas). Hibás $hat(f)$ esetén viszont a
+pont a durva döntési határra kerülhet, és a durva bitről nem marad információ, ez a
+hibaterjedés forrása, amelyet a @sec:hibaterjedes részletez.
+
+*Kemény tisztítás, Gray-kiosztás.* A Gray-kiosztásnál a szint
+$beta(d) (2 + beta(f)) \/ sqrt(10)$, vagyis a finom réteg hozzájárulása a durva
+bittől is függ; kivonni ezért nem lehet. A finom bit ismerete viszont megmondja a
+durva bithez tartozó pont *távolságát* a döntési határtól, így a tisztítás itt
+feltételes demodulációt jelent:
+$ L(d | u, hat(f)) = (4 (2 + beta(hat(f)))) / (sqrt(10) N_0) u. $ <eq:llr-gray>
+Mivel $2 + beta(hat(f)) > 0$, az LLR előjele mindig $u$ előjele: *a durva bit
+döntési határa nem függ a finom bittől*. Egy hibás $hat(f)$ így csak az LLR
+nagyságát rontja el (a belső pontokat háromszor túl biztosnak, a külsőket háromszor
+túl bizonytalannak mondja), a döntést nem. A Gray-kiosztás tehát eleve robusztus a
+hibaterjedéssel szemben – cserébe a legrosszabb (belső) pontok távolsága sem nő, így
+a nyeresége is kicsi.
+
+*Lágy tisztítás.* A kemény tisztítás akkor is teljes súllyal vonja ki a becsült
+finom réteget, ha a dekóder bizonytalan volt. A lágy tisztítás Wang1999 ehelyett
+nem módosítja a vett jelet: a dekóder finom bitekre adott információját a priori
+valószínűségként használja fel a következő kódszó durva bitjeinek demodulációjában.
+Tengelyenként
+$ L(d | u) = ln (sum_(f) P(f) thin p(u | d = 0, f)) / (sum_(f) P(f) thin p(u | d = 1, f)), $ <eq:lagy-prior>
+ahol $P(f)$ a finom bit a priori valószínűsége, amelyet a dekóder *extrinsic*
+LLR-jéből ($Lambda_f^"e"$) kapunk.
+
+A dekóder egy finom bitre a csatorna-LLR-t ($L_"cs" (f)$, @eq:llr-finom) kapja
+bemenetként, kimenetként pedig az a posteriori LLR-t ($Lambda_f$) adja. Jelölje $u$
+a finom bit saját megfigyelését, $r$ pedig a dekóder által felhasznált összes többi
+megfigyelést. Rögzített $f$ mellett $u$ független $r$-től, így a Bayes-tétel szerint
+$P(f | u, r) prop p(u | f) thin P(f | r)$, és az a posteriori LLR két tagra bomlik:
+$ Lambda_f = ln P(f = 0 | u, r) / P(f = 1 | u, r)
+  = underbrace(ln p(u | f = 0) / p(u | f = 1), L_"cs" (f))
+  + underbrace(ln P(f = 0 | r) / P(f = 1 | r), Lambda_f^"e"). $ <eq:extrinsic>
+Az extrinsic LLR tehát a finom bitről a saját megfigyelése nélkül rendelkezésre álló
+információ; BP-dekódolásnál ez a paritásellenőrzésekből érkező üzenetek összege.
+A következő kódszó demodulátora ugyanazt a vett blokkot használja fel újra, így ha a
+teljes $Lambda_f$-et adnánk át priorként, a vett jel finom bitre vonatkozó
+információját kétszer vennénk figyelembe, és a kapott LLR túl magabiztos lenne.
+Ezért csak az extrinsic részt, $Lambda_f^"e" = Lambda_f - L_"cs" (f)$-et használjuk.
+A priori valószínűséggé az LLR definíciójából alakítjuk:
+$Lambda_f^"e" = ln P(f = 0) \/ P(f = 1)$ és $P(f = 0) + P(f = 1) = 1$ miatt
+$ P(f = 0) = e^(Lambda_f^"e") / (1 + e^(Lambda_f^"e")) = 1 / (1 + e^(-Lambda_f^"e")),
+  quad P(f = 1) = 1 / (1 + e^(Lambda_f^"e")). $ <eq:prior-valoszinuseg>
+
+Biztos döntésnél ($|Lambda_f^"e"| >> 1$) az @eq:lagy-prior a kemény tisztítással
+egyezik, bizonytalan bitnél ($Lambda_f^"e" approx 0$) pedig a tisztítás nélküli,
+marginalizált LLR-re esik vissza – így egy bizonytalan finom bit nem tolja a döntési
+határra a durva bitet. A vevőben nincs szükség újrakódolásra, a dekódernek viszont a
+teljes kódszóra lágy kimenetet kell adnia. Hibaterjedés továbbra is előfordulhat, ha
+a BP-dekóder sikertelen dekódolásnál magabiztosan hibás LLR-eket ad.
+
+*Gray és lágy tisztítás együtt.* Az @eq:lagy-prior bármely kiosztásra érvényes,
+így a Gray-kiosztással is használható. Nagy javulás azonban nem várható tőle, mert a
+Gray-kiosztás döntési határa eleve független a finom bittől – a lágy tisztítás ott
+csak az LLR-ek nagyságát pontosítja.
+
+*Összefoglalva:* a saját kiosztás nagyobb nyereséget ígér, de kemény tisztítással
+érzékeny a hibaterjedésre; a lágy tisztítás pontosan ezt a gyengeségét kezeli. A
+Gray-kiosztás robusztus, de kevés nyereséggel. A gyakorlatban ezért a saját kiosztás
+és a lágy tisztítás együttese a legígéretesebb.
+// TODO: a szimulációs eredményekkel (5. fejezet) összevetni.
+
+*A kapacitás szintjén nincs különbség.* A kölcsönös információ láncszabálya bármely
+valószínűségi változókra érvényes, így egy tengely durva és finom bitjére is:
+$ I(X; Y) = I(D, F; Y) = I(F; Y) + I(D; Y | F). $ <eq:lanc-16qam>
+A bal oldal a konstelláció kölcsönös információja, amely nem függ a címkézéstől, és
+minden olyan rendszer számára elvi felső korlát, amely ezt a konstellációt
+használja – szinkron és aszinkron rendszerre egyaránt. A különbség abban van, hogy
+melyik rendszer tudja ezt a határt elérni. Az átfedéses láncban a két réteg
+különböző kódszavakhoz tartozik, és a szukcesszív vevő sorrendben dekódolja őket,
+így a második tag valóban feltételes alakban, az első réteg ismeretében valósul meg:
+ideális kódokkal a lánc a kiosztástól függetlenül eléri $I(X; Y)$-t. A szinkron
+rendszer bitenkénti dekódolással csak a bitek feltétel nélküli kölcsönös
+információinak összegét, $sum_i I(B_i; Y) <= I(X; Y)$-t éri el; Gray-kiosztással ez a
+határt szinte eléri (@tab:mi; 2 bit/szimbólum rátánál a különbség 0,16 dB). Mindez összhangban van azzal,
+hogy az aszinkron többszörös hozzáférésű csatorna kapacitástartománya korlátos
+késleltetés mellett megegyezik a szinkronéval Cover1981 Farkas2014capacity: az
+aszinkronitás a kapacitáson nem változtat.
+
+A két kiosztás között csak az információ megoszlásában van különbség (@tab:mi): a
+saját kiosztás a finom (zavart) szerepben kevesebb, a durva (tisztított) szerepben
+több információt hordoz, mint a Gray-kiosztás.
+
+#figure(
+  table(
+    columns: 4, align: (left, center, center, center), stroke: none,
+    table.hline(stroke: 0.6pt),
+    table.header([], [$E_s \/ N_0 = 6$ dB], [$9$ dB], [$12$ dB]),
+    table.hline(stroke: 0.4pt),
+    [saját: $I(F;Y) + I(D;Y|F)$], [0,24 + 0,86], [0,49 + 0,98], [0,79 + 1,00],
+    [Gray: $I(F;Y) + I(D;Y|F)$], [0,40 + 0,70], [0,64 + 0,82], [0,86 + 0,93],
+    [összeg (mindkettő)], [1,10], [1,46], [1,79],
+    [szinkron Gray, bitenként], [1,09], [1,46], [1,79],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [Tengelyenkénti kölcsönös információ (bit/dimenzió) a két szerepben.
+    Monte Carlo-becslés; az összeg a kiosztástól független.],
+) <tab:mi>
+
+*A nyereség a hibaexponensben jelenik meg.* Az aszinkron szerkezet előnye nem a
+kapacitásban, hanem a hibaexponensben (@<eq:hibaexponens>) jelentkezik @csiszar2021.
+Minden rendszer exponense a kapacitásnál nullára csökken, $E(C) = 0$ Gallager1965;
+mivel a kapacitás a két rendszerben azonos, a vízesés-tartományban – ahol a kód
+rátája közel van az adott jel-zaj viszonyhoz tartozó kapacitáshoz – lényeges
+különbség nem várható. Rögzített kódrátánál a jel-zaj viszony növelésével a kapacitás
+nő, a ráta egyre messzebb kerül alatta, és itt az exponensek már eltérhetnek. Nagy
+jel-zaj viszony mellett a hibavalószínűséget a minimális távolság határozza meg, így
+a nyereség konkrét formája a tisztított bitek nagyobb távolsága (@sec:tisztitas). A
+nyereség tehát nem a kód küszöbének eltolódásában, hanem a küszöb feletti
+tartományban, a bithibaarány gyorsabb csökkenésében jelentkezik. Csiszár, Farkas és
+Kói eredménye együttes dekódolásra vonatkozik; hogy a szukcesszív vevővel mennyi
+valósul meg belőle, azt szimulációval vizsgáljuk.
+
+=== Kétirányú dekódolás <sec:ketiranyu>
+
+A szabadalom szerint a dekódolás a lánc végéről is indítható. Hátulról haladva
+azonban a szerepek felcserélődnek: az utolsó kódszó dekódolása után a *durva* réteg
+válik ismertté, és a tisztítás a finom bitek távolságát nem növeli. Ezért a
+kétirányú változatban az adó a lánc második felét tükrözve állítja elő – ott a
+következő kódszó adja a finom, az aktuális a durva réteget –, így a lánc mindkét
+végéről ugyanolyan feltételekkel indulhat a szukcesszív dekódolás, és a két irány a
+lánc közepén találkozik.
+// TODO: pontosítsd a találkozási pontot a megvalósítás szerint (melyik blokkban
+// fut össze a két irány, és ott melyik kódszót dekódoljátok előbb).
+
+A kétirányú dekódolás két előnnyel jár. A leghosszabb dekódolási lánc $L$-ről
+körülbelül $L \/ 2$-re rövidül, így egy hiba legfeljebb feleannyi kódszón tud
+továbbterjedni, és a két irány párhuzamosan futtatható, ami a dekódolási késleltetést
+is felezi. A rátaveszteség nem változik, mert továbbra is két ritkább modulációjú
+láncvég van.
+
+== Hibaterjedés és az eljárás ára <sec:korlatok>
+
+=== Hibaterjedés <sec:hibaterjedes>
+
+A szukcesszív vevő azt feltételezi, hogy a tisztításhoz felhasznált kódszó helyes.
+Ha a $k$-adik kódszó dekódolása hibás, a tisztított jel tengelyenként
+$ tilde(u) = (2 beta(d) + beta(f) - beta(hat(f))) / sqrt(10) + w_u. $ <eq:hibas-tisztitas>
+Ahol $hat(f) = f$, a tisztítás helyes. Ahol $hat(f) != f$, a kivont érték előjele
+ellentétes, azaz $beta(f) - beta(hat(f)) = 2 beta(f)$, és
+$ tilde(u) = (2 beta(d) + 2 beta(f)) / sqrt(10) + w_u. $ <eq:hibas-tisztitas2>
+Ha a finom bit előjele megegyezik a durváéval, a pont a döntési határtól távolabb
+kerül ($plus.minus 4 \/ sqrt(10)$), és a döntés helyes marad; ha ellentétes, a pont
+pontosan a döntési határra ($0$-ra) esik, és a durva bitről nem marad információ.
+Mivel a két eset egyformán valószínű, egy hibásan becsült finom bit átlagosan minden
+második esetben „törli” a következő kódszó megfelelő durva bitjét (kemény döntésnél
+ez átlagosan 25% bithibának felel meg). Egy sikertelen LDPC-dekódolás nem néhány,
+hanem a kódszó jelentős részét érintő bithibát okoz, így a következő kódszó első fele
+nagyrészt törlődik, annak dekódolása is nagy valószínűséggel sikertelen lesz, és a
+hiba dominóként végigfuthat a láncon.
+
+A hibaterjedést a lágy tisztítás mérsékli (@sec:tisztitas): a bizonytalan finom
+biteket nem vonja ki, így ezek nem okoznak törlést; magabiztosan hibás
+dekóderkimenet esetén azonban a hiba így is továbbterjedhet. A BPSK–QPSK változatban
+ilyen hibaterjedés nincs, mert ott a tisztítás nem befolyásolja az LLR-t
+(@sec:bpsk-qpsk).
+
+=== Az eljárás ára <sec:ar>
+
+// --- egyelőre csak vázlat ---
+// * Rátaveszteség: L kódszóhoz L+1 blokk tartozik, így a spektrális hatékonyság
+//   a szinkron 16-QAM 4R bit/szimbólumához képest 4R·L/(L+1)
+//   (azonos Es/N0 mellett Eb/N0-ban 10·log10((L+1)/L) dB többlet; L = 20: 0,21 dB).
+//   Képlet: $ eta_"AAC" = 4 R L / (L + 1) $
+// * Késleltetés: a kódszavak csak sorban dekódolhatók, a k-adikhoz meg kell várni
+//   az előző k-1 dekódolását (kétirányúval ~ felezhető).
+// * Bonyolultság: minden kódszót a dekódolás után újra kell kódolni és modulálni.
+// * Hibaterjedés: hosszabb lánc -> kisebb rátaveszteség, de nagyobb kockázat;
+//   a lánchossz megválasztása kompromisszum (a szabadalom is említi).
+
+// =====================================================================
+
 
 // = A szimulációs környezet <ch:szimulacio>
 // = Eredmények <ch:eredmenyek>
