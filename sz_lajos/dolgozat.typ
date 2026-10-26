@@ -236,7 +236,6 @@ javítja.
 
 == Aszinkron többszörös hozzáférésű csatorna és SIC <sec:mac>
 
-== Aszinkron többszörös hozzáférésű csatorna és SIC <sec:mac>
 
 A többszörös hozzáférésű csatornán (MAC) több adó ad egyszerre egyetlen vevőnek. Két
 felhasználó esetén, $X_1$ és $X_2$ bemenettel, valamint $Y$ kimenettel, az
@@ -349,6 +348,311 @@ aszinkronitás előnye ilyen, gyakorlatban is megvalósítható vevő mellett
 mennyiben marad meg.
 
 // = Az átfedéses modulációs eljárás <ch:eljaras>
+// =====================================================================
+//  3. FEJEZET – Az átfedéses modulációs eljárás
+
+//  Új hivatkozás kell a refs.bib-be: wachsmann1999 (lásd a fájl végén).
+// =====================================================================
+
+// Ábrahely a saját MATLAB-ábráitoknak (cseréld #image(...)-re)
+#let abrahely(szoveg) = rect(
+  width: 100%, height: 5.5cm, radius: 3pt,
+  stroke: (paint: luma(160), thickness: 0.6pt, dash: "dashed"),
+  align(center + horizon, text(size: 9pt, fill: luma(110), szoveg)),
+)
+
+= Az átfedéses modulációs eljárás <ch:eljaras>
+
+Ebben a fejezetben bemutatjuk a vizsgált átfedéses modulációs eljárást és a hozzá
+tartozó szukcesszív vevőt. Először áttekintjük a rendszer felépítését és
+jelöléseit, majd egy konkrét példán lépésről lépésre végigkövetjük az adó és a vevő
+működését. Ezt követően indokoljuk azokat a tervezési döntéseket, amelyek a végső
+változathoz vezettek, végül megvizsgáljuk az eljárás korlátait: a hibaterjedést és
+azt, hogy a nyereségért cserébe mit kell feláldozni.
+
+== Áttekintés <sec:attekintes>
+
+A rendszer felépítése a következő (@fig:blokkvazlat). Az adó $L$ darab, egyenként $2n$
+bit hosszú kódszót ($bold(c)_1, dots, bold(c)_L$) állít elő ugyanazzal a
+csatornakódolóval. Minden kódszót két, $n$ bites félre bontunk:
+$bold(c)_k = (bold(c)_k^((1)), bold(c)_k^((2)))$.
+// TODO: ha a felek nem az első/második n bit, hanem a páratlan/páros bitek
+// (mint az AM2_4-ben: reshape(codedData,[2 BlockLengthHalf])'), azt itt írd le.
+Az átfedéses modulátor az egymást követő kódszavakat úgy képezi le, hogy a $k$-adik
+kódszó második fele és a $(k+1)$-edik kódszó első fele *ugyanazokon* a szimbólumokon
+osztozik. A vevő a láncot az egyik végéről kezdve kódszavanként dekódolja, és minden
+dekódolt kódszó hozzájárulását eltávolítja a vett jelből.
+
+#figure(
+  {
+    set text(size: 9pt)
+    let doboz(t, szin: luma(245)) = box(
+      inset: (x: 6pt, y: 5pt), radius: 3pt, fill: szin,
+      stroke: luma(150) + 0.6pt, align(center, t))
+    let nyil = text(size: 12pt, fill: luma(90), sym.arrow.r)
+    grid(
+      columns: 9, column-gutter: 4pt, row-gutter: 10pt, align: horizon,
+      doboz[Adat-\ bitek], nyil, doboz[LDPC-\ kódoló], nyil,
+      doboz(szin: rgb("#dbe8f8"))[Átfedéses\ modulátor], nyil,
+      doboz[AWGN-\ csatorna], nyil, doboz(szin: rgb("#dbe8f8"))[SIC-\ vevő],
+    )
+    v(4pt)
+    grid(
+      columns: 9, column-gutter: 4pt, align: horizon,
+      doboz[Demoduláció\ (LLR)], nyil, doboz[LDPC-\ dekóder], nyil,
+      doboz[Újra-\ kódolás], nyil, doboz[Rekonstrukció,\ kivonás], nyil,
+      doboz[következő\ kódszó],
+    )
+  },
+  caption: [A rendszer blokkvázlata (felül) és a SIC-vevő egy lépése (alul).],
+) <fig:blokkvazlat>
+
+Az eljárás az aszinkron többszörös hozzáférésű csatorna (sec:mac) egyfelhasználós
+megfelelője. Ha a páratlan sorszámú kódszavakat az első, a
+párosakat a második „felhasználónak” tekintjük, mindkét felhasználó egymás után,
+ küldi a kódszavait, a második felhasználó kódszavai azonban valamennyi
+ eltolással kezdődnek. Minden kódszó így a másik felhasználó két
+egymást követő kódszavával fed át – pontosan úgy, mint az aszinkron MAC-modellben.
+A lényeges különbség, hogy a vevő nem együttesen, hanem szukcesszíven dekódol.
+
+== Az eljárás lépésről lépésre <sec:lepesrol>
+
+Az eljárást a 4-QAM–16-QAM változaton, az általunk választott bitkiosztással mutatjuk
+be; a kiosztás választásának okait később fejtjük ki (@sec:sajat-kiosztas).
+
+=== Az adó <sec:ado>
+
+Jelölje $beta(c) = 1 - 2c$ a bit $plus.minus 1$ értékre képezését. A 16-QAM
+konstellációt két 4-QAM réteg szuperpozíciójaként írjuk fel. Egy szimbólum valós
+és képzetes tengelyén egy-egy *durva* ($d$) és egy-egy *finom* ($f$) bit ül:
+$ x = 1 / sqrt(10) [(2 beta(d_R) + beta(f_R)) + j (2 beta(d_I) + beta(f_I))]. $ <eq:16qam-konst>
+A durva bitek kiválasztják a konstelláció negyedét („dobozát”), a finom bitek a
+dobozon belüli pontot.
+
+#figure(
+  table(
+    columns: 5, align: center, stroke: none,
+    table.hline(stroke: 0.6pt),
+    table.header([szint (tengelyenként)], [$-3$], [$-1$], [$1$], [$3$]),
+    table.hline(stroke: 0.4pt),
+    [saját kiosztás $(d, f)$], [11], [10], [01], [00],
+    [Gray-16-QAM $(d, f)$], [10], [11], [01], [00],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [A tengelyenkénti bitkiosztás. A saját kiosztásban minden dobozban azonos
+    a finom bit mintája, a Gray-kiosztásban a szomszédos dobozok tükrözöttek.],
+) <tab:kiosztas>
+
+#figure(
+  {
+    // Saját kiosztás tengelyenként: szint = 2 s(d) + s(f), s(b) = 1 - 2b
+    let u = 0.82cm                     // 1 egység = 1/sqrt(10)
+    let ox = 4.4cm
+    let oy = 4.3cm
+    let P(x, y) = (ox + x * u, oy - y * u)
+    let s(b) = 1 - 2 * b
+    let vonal(p, q, st) = place(top + left, line(start: p, end: q, stroke: st))
+    let cimke(p, body, dx: 0pt, dy: 0pt, meret: 8pt) = place(top + left,
+      dx: p.at(0) - 1.5cm + dx, dy: p.at(1) + dy,
+      box(width: 3cm, align(center, text(size: meret, body))))
+    let nyil(p, irany) = {
+      let (x, y) = p
+      let pts = if irany == "x" { ((x, y - 3pt), (x + 7pt, y), (x, y + 3pt)) }
+                else { ((x - 3pt, y), (x, y - 7pt), (x + 3pt, y)) }
+      place(top + left, polygon(fill: luma(60), ..pts))
+    }
+    box(width: 8.8cm, height: 8.7cm, {
+      // dobozok (durva bitek)
+      for (dR, dI) in ((0, 0), (1, 0), (0, 1), (1, 1)) {
+        let (sx, sy) = (s(dR), s(dI))
+        let x0 = calc.min(sx * 0.4, sx * 3.6)
+        let y1 = calc.max(sy * 0.4, sy * 3.6)
+        let p = P(x0, y1)
+        place(top + left, dx: p.at(0), dy: p.at(1),
+          rect(width: 3.2 * u, height: 3.2 * u, radius: 4pt,
+            fill: rgb("#d6e6f9"), stroke: rgb("#2a78d6") + 0.6pt))
+        cimke(P(sx * 2, sy * 3.6), [$d = #dR#dI$],
+          dy: if sy > 0 { -0.48cm } else { 0.08cm }, meret: 8.5pt)
+      }
+      // tengelyek = a durva bitek döntési határai
+      vonal(P(-4.3, 0), P(4.3, 0), luma(60) + 0.7pt)
+      vonal(P(0, -4.3), P(0, 4.3), luma(60) + 0.7pt)
+      nyil(P(4.3, 0), "x"); nyil(P(0, 4.3), "y")
+      cimke(P(4.3, 0), [Re], dx: 0.45cm, dy: -0.22cm, meret: 9pt)
+      cimke(P(0, 4.3), [Im], dy: -0.62cm, meret: 9pt)
+      for v in (-3, -1, 1, 3) {
+        vonal(P(v, -0.12), P(v, 0.12), luma(60) + 0.6pt)
+      }
+      // pontok + finom bitek
+      for dR in (0, 1) { for fR in (0, 1) { for dI in (0, 1) { for fI in (0, 1) {
+        let p = P(2 * s(dR) + s(fR), 2 * s(dI) + s(fI))
+        place(top + left, dx: p.at(0) - 2.6pt, dy: p.at(1) - 2.6pt,
+          circle(radius: 2.6pt, fill: luma(25)))
+        cimke(p, text(fill: luma(40))[#fR#fI], dy: 0.1cm, meret: 7.5pt)
+      }}}}
+    })
+  },
+  caption: [A saját kiosztású 16-QAM konstelláció. A durva bitek a negyedet, a finom
+    bitek a negyeden belüli pontot választják ki.],
+) <fig:konstellacio>
+
+A kódszavakat úgy rendeljük a rétegekhez, hogy a $k$-adik kódszó második fele a
+finom, a $(k+1)$-edik kódszó első fele a durva bitekbe kerüljön.
+Egy átfedő blokk $n/2$ szimbólumból áll: mindkét kódszófél $n$ bitje szimbólumonként kettesével kerül átvitelre (a $k$-adik kódszóé a finom, a $(k+1)$-ediké a durva rétegben).
+. A lánc két végén nincs átfedő kódszó; itt a ritkább, egységnyi
+energiájú 4-QAM modulációt használjuk. A teljes adott sorozat tehát $L + 1$ blokkból áll
+(@fig:idovonal):
+$ bold(x)_0 = q(bold(c)_1^((1))), quad
+  bold(x)_k = cal(M)(bold(c)_(k+1)^((1)), bold(c)_k^((2))) space (1 <= k <= L - 1), quad
+  bold(x)_L = q(bold(c)_L^((2))), $ <eq:lanc>
+ahol $q(dot)$ a 4-QAM leképezés, $cal(M)(d, f)$ pedig a @eq:16qam-konst szerinti
+16-QAM leképezés az első argumentum durva, a második finom bitjeivel.
+
+#figure(
+  {
+    set text(size: 8.5pt)
+    let L = 4
+    let durva = rgb("#d6e6f9")
+    let finom = rgb("#fbdccc")
+    let ritka = luma(232)
+    let cella(t, szin) = box(width: 100%, inset: 4pt, radius: 2pt, fill: szin,
+      stroke: luma(160) + 0.5pt, align(center, t))
+    let sorok = ()
+    sorok.push([])
+    for b in range(L + 1) { sorok.push(align(center)[#b. blokk]) }
+    for k in range(1, L + 1) {
+      sorok.push(align(right)[$bold(c)_#k$])
+      for b in range(L + 1) {
+        if b == k - 1 {
+          sorok.push(if k == 1 { cella([4-QAM], ritka) } else { cella([durva], durva) })
+        } else if b == k {
+          sorok.push(if k == L { cella([4-QAM], ritka) } else { cella([finom], finom) })
+        } else { sorok.push([]) }
+      }
+    }
+    sorok.push(align(right)[_adott_])
+    for b in range(L + 1) {
+      sorok.push(align(center, if b == 0 or b == L [4-QAM] else [16-QAM]))
+    }
+    grid(columns: (auto,) + (1fr,) * (L + 1), column-gutter: 3pt, row-gutter: 4pt,
+      align: horizon, ..sorok)
+  },
+  caption: [Az átfedéses lánc felépítése $L = 4$ kódszóra. Minden kódszó két blokkon
+    halad át: az elsőben a durva, a másodikban a finom réteget adja; a lánc két végén
+    ritkább (4-QAM) modulációt használunk.],
+) <fig:idovonal>
+
+=== A vevő <sec:vevo>
+
+A vett blokk $bold(y)_k = bold(x)_k + bold(w)_k$, $bold(w)_k tilde.op cal(C N)(0, N_0)$
+(@fig:szoras). A vevő a lánc elejéről indul; a lépéseket algoritmusba foglaltuk (@alg:sic).
+Az algoritmusban szereplő LLR-képletek levezetése később következik
+// TODO(@sec:llr-finom).
+
+#figure(
+  image("abrak/vett_szoras.png", width: 60%),
+  caption: [A vett szimbólumok. A lánc két végének 4-QAM blokkjai és a belső
+    16-QAM blokkok együtt jelennek meg.],
+) <fig:szoras>
+#figure(
+  kind: "algoritmus", supplement: [algoritmus],
+  block(width: 100%, inset: 10pt, radius: 3pt, stroke: luma(150) + 0.6pt, {
+    set align(left)
+    set text(size: 10pt)
+    set enum(numbering: "1.")
+    [*Bemenet:* $bold(y)_0, dots, bold(y)_L$, $N_0$. #h(1fr) *Kimenet:* $hat(bold(c))_1, dots, hat(bold(c))_L$]
+    v(2pt)
+    enum(
+      [$k = 1$: az első fél LLR-jei a $bold(y)_0$ 4-QAM blokkból.],
+      [A $k$-adik kódszó második felének LLR-jei a $bold(y)_k$ blokk *finom*
+        bitjeiből, ismeretlen durva réteg mellett,  szerint;
+        $k = L$ esetén a $bold(y)_L$ 4-QAM blokkból.],
+      //@eq:llr-finom ezeket majd később használom csak az arész még nincs kész 
+      [Dekódolás: $hat(bold(c))_k$; ha $k = L$, vége.],
+      [Újrakódolás és rekonstrukció: a finom réteg becsült hozzájárulása
+        $hat(bold(x))_k^"finom" = (beta(hat(f)_R) + j beta(hat(f)_I)) \/ sqrt(10)$.],
+      [Tisztítás: $tilde(bold(y))_k = bold(y)_k - hat(bold(x))_k^"finom"$.
+        Helyes becslés esetén $tilde(bold(y))_k$ egy $2 \/ sqrt(10)$ amplitúdójú
+        4-QAM jel.],
+      [A $(k+1)$-edik kódszó első felének LLR-jei a tisztított blokkból
+        a  szerint; $k <- k + 1$, vissza a 2. lépésre.],
+        //@eq:llr-durva
+    )
+    v(2pt)
+    text(size: 9pt, fill: luma(70))[A megvalósításban a tisztított blokkot
+      $sqrt(5) \/ 2$-vel egységnyi energiájú 4-QAM-má skálázzuk; ekkor a zajvariancia
+      $5 N_0 \/ 4$-re nő, az LLR változatlan.]
+  }),
+  caption: [Szukcesszív dekódolás az átfedéses láncon.],
+) <alg:sic>
+
+#figure(
+  grid(columns: 3, image("abrak/sic_vett.png"), image("abrak/sic_rekonstr.png"), image("abrak/sic_tisztitott.png")),
+  caption: [caption: [Egy SIC-lépés a konstellációs síkon: a vett 16-QAM blokk (balra), a
+  rekonstruált finom réteg kivonása, amely minden pontot a doboza középpontjába tol
+  (középen), és a tisztított blokk, amelyben a durva bitek egy ritkább, 4-QAM jellegű
+  konstellációban jelennek meg (jobbra).],],
+)), <fig:sic-lepes>
+
+== Tervezési döntések és indoklásuk <sec:dontesek>
+
+=== A BPSK–QPSK változat korlátja <sec:bpsk-qpsk>
+
+A BPSK–QPSK átfedéses modulációban a két egymást követő kódszó bitjei a
+QPSK-szimbólum két egymásra merőleges tengelyére kerülnek. Mivel az AWGN-zaj valós
+és képzetes része független, a vett jel valós része csak az egyik, képzetes része
+csak a másik kódszó bitjéről hordoz információt. A két kódszó tehát valójában két
+egymástól független csatornán halad. Ebből következik, hogy az egyik kódszó
+ismerete – vagyis a SIC tisztító lépése – nem javít a másik kódszó bitjeinek
+megbízhatóságán, és hibás tisztítás esetén sem ront rajta. A belső kódszavak így
+pontosan ugyanolyan feltételek mellett dekódolódnak, mint a szinkron QPSK-átvitelben.
+A mért előny kizárólag a lánc két végének ritkább, nagyobb bitenergiájú
+modulációjából ered.
+
+A 4-QAM–16-QAM változatban ezzel szemben a durva és a finom bit ugyanazon a
+tengelyen osztozik (ld. @eq:16qam-konst), így a tisztítás valódi információt ad.
+Hogy ebből mekkora nyereség lesz, az a bitkiosztáson múlik (@sec:sajat-kiosztas).
+
+
+=== A saját bitkiosztás <sec:sajat-kiosztas>  
+
+A 16-QAM konstelláción a négy bitet sokféleképpen oszthatjuk el a két kódszó között.
+Két kiosztást hasonlítunk össze (@tab:kiosztas): a Gray-16-QAM-ot, amelyben a durva
+bit az MSB, a finom bit az LSB, és a saját kiosztásunkat, amelyben minden doboz
+azonos címkézésű. 
+A két kiosztás (@tab:kiosztas) tengelyenként egyetlen helyen tér el: a szint a
+saját kiosztásnál $2 beta(d) + beta(f)$, a Gray-kiosztásnál
+$beta(d) (2 + beta(f))$ . Mindkettőnek van
+előnye, de a lánc két különböző pontján.
+
+*A Gray-kiosztás előnye: egy szimbólumhiba egy bithiba.* A Gray-kiosztásban a
+szomszédos szintek ($-3 <-> -1 <-> 1 <-> 3$) címkéi pontosan egy bitben térnek el.
+Nagy jel-zaj viszony esetében, a szimbólumhibák szinte mindig a legközelebbi
+szomszédba esnek, így egy szimbólumhiba egyetlen bithibát okoz. A saját kiosztásnál
+a $-1 <-> 1$ átmenet (a durva döntési határ) a $10 <-> 01$ címkék között vezet, vagyis
+*két* bithibát okoz; tengelyenként átlagosan $(1 + 2 + 1) \/ 3 = 4 \/ 3$ bithiba esik
+egy szomszédos szimbólumhibára. A Gray-kiosztás ezért ott jobb, ahol a teljes
+16-QAM szimbólumról kell dönteni – a SIC-láncban a tisztítás előtti, „zavart”
+félben.
+
+*A saját kiosztás előnye: a tisztítás után állandó a távolság.* A finom réteg
+ismeretében a durva bitről két pont között kell dönteni. A saját kiosztásnál ez
+mindig a $plus.minus 2$ szintpár, a Gray-kiosztásnál viszont a finom bittől
+függően a $plus.minus 1$ (belső) vagy a $plus.minus 3$ (külső) pár. A döntési határtól
+mért távolság tehát
+$ "saját:" quad 2, quad quad "Gray:" quad 1 "vagy" 3 quad (1 \/ sqrt(10) "egységben"). $ <eq:tavolsag-tisztitas>
+Az átlag mindkét esetben $2$, a hibavalószínűség azonban nem a távolság, hanem a
+konvex $Q(dot)$ függvény átlaga. $sigma^2 = N_0 \/ 2$ zajvariancia mellett
+$ P_d^"saját" = Q(2 / (sqrt(10) sigma)), quad
+  P_d^"Gray" = 1 / 2 [Q(1 / (sqrt(10) sigma)) + Q(3 / (sqrt(10) sigma))]
+  >= P_d^"saját", $ <eq:jensen-q>
+ahol az egyenlőtlenség a Jensen-egyenlőtlenségből következik. Nagy jel-zaj viszony
+mellett a Gray-kiosztás hibáját a belső pontok tagja uralja, és ugyanahhoz a
+hibavalószínűséghez négyszeres (6 dB-lel nagyobb) jel-zaj viszony kell, mint a saját
+kiosztásnál. A saját kiosztás tehát a tisztított félben jobb.
+
+=====================================================================
+
 // = A szimulációs környezet <ch:szimulacio>
 // = Eredmények <ch:eredmenyek>
 // = Összefoglalás és kitekintés <ch:osszefoglalas>
