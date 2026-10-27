@@ -77,7 +77,7 @@
 #heading(numbering: none, outlined: false)[Absztrakt]
 
 A digitális hírközlő rendszerek adatátviteli igénye az elmúlt évtizedben ugrásszerűen növekedett. A fizikai rétegben alkalmazott hibajavító csatornakódolási eljárások – mint az ipari szabványokban rögzített Turbo és LDPC kódok – mára megközelítették az elméleti Shannon-korlátot. A további teljesítménynövelés egyik lehetséges iránya olyan - a címben - átfedéses modulációs eljárás, amely a vevőoldali interferencia-kioltásra is támaszkodik.
-Hagyományos rendszerekben a csatornakódoló által előállított blokkokat egymástól függetlenül, diszjunkt szimbólumokká alakítva modulálják. Ezzel szemben az aszinkron vagy átfedéses modulációs struktúrákban az egymást követő kódszavak szimbólumai részben átfedik egymást a csatornán (például QPSK konstellációban közösen átvitt bitpárok révén). Míg a hagyományos eljárások blokkódokat hoznak létre, ez az eljárás Trellis-kódokat hoz létre, ami merőben új alapokra helyezi az ismert elméleti korlátokat [Forney, 1975]. A vevőoldalon a kódszavak szekvenciális dekódolása szükséges: az aktuális blokk sikeres dekódolása után annak interferenciáját rekonstruálni kell, majd kivonni a még detektálatlan jelekből (Successive/Decoding Interference Cancellation – SIC). Az eljárás kritikus pontja a hibaterjedés: ha a lánc elején téves dekódolás történik, a pontatlan interferencia-kivonás dominóeffektusként ronthatja a rákövetkező blokkok megbízhatóságát.
+Hagyományos rendszerekben a csatornakódoló által előállított blokkokat egymástól függetlenül, diszjunkt szimbólumokká alakítva modulálják. Ezzel szemben az aszinkron vagy átfedéses modulációs struktúrákban az egymást követő kódszavak szimbólumai részben átfedik egymást a csatornán (például QPSK konstellációban közösen átvitt bitpárok révén). Míg a hagyományos eljárások blokkódokat hoznak létre, ez az eljárás Trellis-kódokat hoz létre, ami merőben új alapokra helyezi az ismert elméleti korlátokat @forney1974. A vevőoldalon a kódszavak szekvenciális dekódolása szükséges: az aktuális blokk sikeres dekódolása után annak interferenciáját rekonstruálni kell, majd kivonni a még detektálatlan jelekből (Successive/Decoding Interference Cancellation – SIC). Az eljárás kritikus pontja a hibaterjedés: ha a lánc elején téves dekódolás történik, a pontatlan interferencia-kivonás dominóeffektusként ronthatja a rákövetkező blokkok megbízhatóságát.
 
 Munkánkban ezen átfedéses modulációs és szekvenciális interferencia-kioltási architektúra működését és hibajavító képességét vizsgáljuk AWGN csatorna felett. Célunk annak feltárása, hogy a láncolt szimbólumstruktúra milyen feltételek és kódparaméterek mellett képes felülmúlni a hagyományos, független blokkátvitelt és ezek milyen hátrányokkal járnak.
 
@@ -136,7 +136,7 @@ A @ch:elmelet röviden összefoglalja a munkához szükséges elméleti háttere
 hírközlési lánc és az AWGN csatorna modelljét, a felhasznált modulációkat és a
 bitenkénti LLR-számítást, a vizsgált hibajavító kódokat, a csatornakapacitás és
 a hibaexponens fogalmát, valamint az aszinkron többszörös hozzáférésű csatorna
-és a szukcesszív interferencia-kioltás alapjait. A 3. fejezet részletesen bemutatja az átfedéses
+és a szukcesszív interferencia-kioltás alapjait. A @ch:eljaras részletesen bemutatja az átfedéses
 modulációs eljárást és a SIC-vevőt. A 4. fejezet a kifejlesztett szimulációs
 környezetet ismerteti, az 5. fejezet a szimulációs eredményeket mutatja be és
 értékeli. Végül a 6. fejezet összefoglalja munkánkat, és kitér a további
@@ -365,8 +365,8 @@ mennyiben marad meg.
 Ebben a fejezetben bemutatjuk a vizsgált átfedéses modulációs eljárást és a hozzá
 tartozó szukcesszív vevőt. Először áttekintjük a rendszer felépítését és
 jelöléseit, majd egy konkrét példán lépésről lépésre végigkövetjük az adó és a vevő
-működését. Ezt követően indokoljuk azokat a tervezési döntéseket, amelyek a végső
-változathoz vezettek, végül megvizsgáljuk az eljárás korlátait: a hibaterjedést és
+működését. Ezt követően indokoljuk azokat a tervezési döntéseket, amelyek a különböző
+változatokhoz vezettek, végül megvizsgáljuk az eljárás korlátait: a hibaterjedést és
 azt, hogy a nyereségért cserébe mit kell feláldozni.
 
 == Áttekintés <sec:attekintes>
@@ -404,7 +404,7 @@ dekódolt kódszó hozzájárulását eltávolítja a vett jelből.
   caption: [A rendszer blokkvázlata (felül) és a SIC-vevő egy lépése (alul).],
 ) <fig:blokkvazlat>
 
-Az eljárás az aszinkron többszörös hozzáférésű csatorna (sec:mac) egyfelhasználós
+Az eljárás az aszinkron többszörös hozzáférésű csatorna (@sec:mac) egyfelhasználós
 megfelelője. Ha a páratlan sorszámú kódszavakat az első, a
 párosakat a második „felhasználónak” tekintjük, mindkét felhasználó egymás után,
  küldi a kódszavait, a második felhasználó kódszavai azonban valamennyi
@@ -585,11 +585,11 @@ Az algoritmusban szereplő LLR-képletek levezetése később következik
 
 #figure(
   grid(columns: 3, image("abrak/sic_vett.png"), image("abrak/sic_rekonstr.png"), image("abrak/sic_tisztitott.png")),
-  caption: [caption: [Egy SIC-lépés a konstellációs síkon: a vett 16-QAM blokk (balra), a
+  caption:[Egy SIC-lépés a konstellációs síkon: a vett 16-QAM blokk (balra), a
   rekonstruált finom réteg kivonása, amely minden pontot a doboza középpontjába tol
   (középen), és a tisztított blokk, amelyben a durva bitek egy ritkább, 4-QAM jellegű
-  konstellációban jelennek meg (jobbra).],],
-)), <fig:sic-lepes>
+  konstellációban jelennek meg (jobbra).],
+) <fig:sic-lepes>
 
 == Tervezési döntések és indoklásuk <sec:dontesek>
 
@@ -687,7 +687,7 @@ hibaterjedéssel szemben – cserébe a legrosszabb (belső) pontok távolsága 
 a nyeresége is kicsi.
 
 *Lágy tisztítás.* A kemény tisztítás akkor is teljes súllyal vonja ki a becsült
-finom réteget, ha a dekóder bizonytalan volt. A lágy tisztítás Wang1999 ehelyett
+finom réteget, ha a dekóder bizonytalan volt. A lágy tisztítás @wang1999 ehelyett
 nem módosítja a vett jelet: a dekóder finom bitekre adott információját a priori
 valószínűségként használja fel a következő kódszó durva bitjeinek demodulációjában.
 Tengelyenként
@@ -746,7 +746,7 @@ rendszer bitenkénti dekódolással csak a bitek feltétel nélküli kölcsönö
 információinak összegét, $sum_i I(B_i; Y) <= I(X; Y)$-t éri el; Gray-kiosztással ez a
 határt szinte eléri (@tab:mi; 2 bit/szimbólum rátánál a különbség 0,16 dB). Mindez összhangban van azzal,
 hogy az aszinkron többszörös hozzáférésű csatorna kapacitástartománya korlátos
-késleltetés mellett megegyezik a szinkronéval Cover1981 Farkas2014capacity: az
+késleltetés mellett megegyezik a szinkronéval @cover1981 @farkas2014: az
 aszinkronitás a kapacitáson nem változtat.
 
 A két kiosztás között csak az információ megoszlásában van különbség (@tab:mi): a
@@ -770,8 +770,8 @@ több információt hordoz, mint a Gray-kiosztás.
 ) <tab:mi>
 
 *A nyereség a hibaexponensben jelenik meg.* Az aszinkron szerkezet előnye nem a
-kapacitásban, hanem a hibaexponensben (@<eq:hibaexponens>) jelentkezik @csiszar2021.
-Minden rendszer exponense a kapacitásnál nullára csökken, $E(C) = 0$ Gallager1965;
+kapacitásban, hanem a hibaexponensben (@eq:hibaexponens) jelentkezik @csiszar2021.
+Minden rendszer exponense a kapacitásnál nullára csökken, $E(C) = 0$ @gallager1965;
 mivel a kapacitás a két rendszerben azonos, a vízesés-tartományban – ahol a kód
 rátája közel van az adott jel-zaj viszonyhoz tartozó kapacitáshoz – lényeges
 különbség nem várható. Rögzített kódrátánál a jel-zaj viszony növelésével a kapacitás

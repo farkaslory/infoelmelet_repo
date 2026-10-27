@@ -1,11 +1,18 @@
+% Kulcsok: kisbetűs, a szövegben @kulcs formában (pl. @wang1999).
+% A Typst csak a ténylegesen hivatkozott tételeket listázza,
 
-% HIÁNYZIK: Forney (1975) – az abstractban hivatkozott mű pontos adatai.
+% ---------------------------------------------------------------------
+%  Már hivatkozott / a szövegben @ nélkül szereplő források
+% ---------------------------------------------------------------------
 
 @article{shannon1948,
   author  = {Shannon, Claude E.},
   title   = {A Mathematical Theory of Communication},
   journal = {Bell System Technical Journal},
-  year = {1948},
+  volume  = {27},
+  number  = {3--4},
+  pages   = {379--423, 623--656},
+  year    = {1948},
 }
 
 @book{cover2006,
@@ -42,4 +49,166 @@
   booktitle = {2020 International Symposium on Information Theory and Its Applications (ISITA)},
   pages     = {46--50},
   year      = {2020},
+}
+
+% Absztrakt: "[Forney, 1975]". A trellis-/konvolúciós kódok hibaexponensét
+% tárgyaló Forney-cikk 1974-es; 
+@article{forney1974,
+  author  = {Forney, Jr., G. David},
+  title   = {Convolutional Codes {II}: Maximum-Likelihood Decoding},
+  journal = {Information and Control},
+  volume  = {25},
+  number  = {3},
+  pages   = {222--266},
+  year    = {1974},
+}
+
+
+@article{wang1999,
+  author  = {Wang, Xiaodong and Poor, H. Vincent},
+  title   = {Iterative (Turbo) Soft Interference Cancellation and Decoding for Coded {CDMA}},
+  journal = {IEEE Transactions on Communications},
+  volume  = {47},
+  number  = {7},
+  pages   = {1046--1061},
+  year    = {1999},
+}
+
+% Szövegben: "Cover1981"
+@article{cover1981,
+  author  = {Cover, Thomas M. and McEliece, Robert J. and Posner, Edward C.},
+  title   = {Asynchronous Multiple-Access Channel Capacity},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {27},
+  number  = {4},
+  pages   = {409--413},
+  year    = {1981},
+}
+
+% Szövegben: "Gallager1965"
+@article{gallager1965,
+  author  = {Gallager, Robert G.},
+  title   = {A Simple Derivation of the Coding Theorem and Some Applications},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {11},
+  number  = {1},
+  pages   = {3--18},
+  year    = {1965},
+}
+
+% ---------------------------------------------------------------------
+%  MÉG NEM HIVATKOZOTT – javasolt források
+% ---------------------------------------------------------------------
+
+% A szabadalom további Farkas–Kói hivatkozásai
+@inproceedings{farkas2014isit,
+  author    = {Farkas, Lóránt and Kói, Tamás},
+  title     = {Universal Error Exponent for Discrete Asynchronous Multiple Access Channels},
+  booktitle = {2014 IEEE International Symposium on Information Theory (ISIT)},
+  pages     = {2944--2948},
+  year      = {2014},
+}
+
+@inproceedings{farkas2015,
+  author    = {Farkas, Lóránt and Kói, Tamás},
+  title     = {Controlled Asynchronism Improves Error Exponent},
+  booktitle = {2015 IEEE International Symposium on Information Theory (ISIT)},
+  pages     = {2638--2642},
+  year      = {2015},
+}
+
+@article{farkas2018,
+  author  = {Farkas, Lóránt and Kói, Tamás},
+  title   = {Universal Random Access Error Exponents for Codebooks of Different Blocklengths},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {64},
+  number  = {4},
+  pages   = {2240--2252},
+  year    = {2018},
+}
+
+% Teljesen aszinkron MAC: a konvex burok (idő-megosztás) elmarad
+@article{hui1985,
+  author  = {Hui, Joseph Y. N. and Humblet, Pierre A.},
+  title   = {The Capacity Region of the Totally Asynchronous Multiple-Access Channel},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {31},
+  number  = {2},
+  pages   = {207--216},
+  year    = {1985},
+}
+
+% Többszintű kódolás + többlépcsős dekódolás (MLC/MSD) – a saját kiosztás
+% és az (lanc-16qam) láncszabályos érvelés közvetlen irodalmi előzménye
+@article{imai1977,
+  author  = {Imai, Hideki and Hirakawa, Shigeichi},
+  title   = {A New Multilevel Coding Method Using Error-Correcting Codes},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {23},
+  number  = {3},
+  pages   = {371--377},
+  year    = {1977},
+}
+
+@article{wachsmann1999,
+  author  = {Wachsmann, Udo and Fischer, Robert F. H. and Huber, Johannes B.},
+  title   = {Multilevel Codes: Theoretical Concepts and Practical Design Rules},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {45},
+  number  = {5},
+  pages   = {1361--1391},
+  year    = {1999},
+}
+
+@article{ungerboeck1982,
+  author  = {Ungerboeck, Gottfried},
+  title   = {Channel Coding with Multilevel/Phase Signals},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {28},
+  number  = {1},
+  pages   = {55--67},
+  year    = {1982},
+}
+
+% BICM – a "szinkron Gray, bitenként" sor elméleti háttere
+@article{caire1998,
+  author  = {Caire, Giuseppe and Taricco, Giorgio and Biglieri, Ezio},
+  title   = {Bit-Interleaved Coded Modulation},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {44},
+  number  = {3},
+  pages   = {927--946},
+  year    = {1998},
+}
+
+
+% Turbo- és LDPC-kódok (1.1 TODO)
+@inproceedings{berrou1993,
+  author    = {Berrou, Claude and Glavieux, Alain and Thitimajshima, Punya},
+  title     = {Near {Shannon} Limit Error-Correcting Coding and Decoding: Turbo-Codes},
+  booktitle = {Proceedings of ICC '93 – IEEE International Conference on Communications},
+  address   = {Geneva},
+  volume    = {2},
+  pages     = {1064--1070},
+  year      = {1993},
+}
+
+@article{gallager1962,
+  author  = {Gallager, Robert G.},
+  title   = {Low-Density Parity-Check Codes},
+  journal = {IRE Transactions on Information Theory},
+  volume  = {8},
+  number  = {1},
+  pages   = {21--28},
+  year    = {1962},
+}
+
+@article{mackay1999,
+  author  = {MacKay, David J. C.},
+  title   = {Good Error-Correcting Codes Based on Very Sparse Matrices},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {45},
+  number  = {2},
+  pages   = {399--431},
+  year    = {1999},
 }
