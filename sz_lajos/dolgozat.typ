@@ -109,8 +109,9 @@ ki; olyan kódot, amely a korlátot gyakorlatban is megvalósítható bonyolults
 közelíti meg, évtizedekig nem ismertek.
 
 /// Ide jöhetne az a rész, hogy turbo kódok meg ldpc kódok ezek hogyan állnak (források is), mi a tudomány jelenlegi állása úgymond ezekkel.
-
-// Illetve sztem ide jöhetne meglévő modulációk pl (trellis-coded modulation,bit-interleaved coded modulation) összehasonlítás rövid bemutatása
+A csatornakódolás és a moduláció összekapcsolásának klasszikus módjait, a
+   többszintű kódolást és a bitátszövéses kódolt modulációt a @sec:mlc
+   foglalja össze.
 
 A többszörös hozzáférésű csatornák (MAC) információelméleti vizsgálatában
 természetes feltevés, hogy a felhasználók szinkronban, egymáshoz igazított
@@ -118,8 +119,7 @@ blokkokban adnak. Csiszár, Farkas és Kói azonban megmutatta, hogy ha a küld�
 szándékosan, megválasztott késleltetéssel, azaz vezérelt aszinkronitással
 adnak, a hibaexponens nagyobb lehet a szinkron átvitelre ismert legjobb
 értéknél @csiszar2021. Az eredmény hátterét Farkas a trellis-kódok felől
-vizsgálta, és az aszinkron MAC-ra kapott eredményekből trellis-kódok
-hibaexponensét vezette le @farkas2020.
+vizsgálta, és megmutatta, hogy a vezérelt aszinkron kódolás a Trellis-kódoknak egy gyakorlati realizációja. @farkas2020.
 
 Ezek az eredmények több felhasználóra és a kódszavak együttes dekódolására
 vonatkoznak, ami a gyakorlatban nehezen valósítható meg. Munkánk alapötlete,
@@ -127,7 +127,7 @@ hogy a jelenséget egyetlen felhasználóra ültetjük át, mégpedig úgy, hogy
 követő kódszavait egymáshoz képest eltolva, átfedéssel moduláljuk, mintha egy
 aszinkron MAC különböző felhasználói lennének. A vevőben a kódszavakat nem
 együttesen, hanem egymás után dekódoljuk, és a már dekódolt kódszó hatását
-kivonjuk a vett jelből (soros interferencia-kioltás, SIC). Ez teszi lehetővé
+kivonjuk a vett jelből (soros interferencia-kioltással, SIC). Ez teszi lehetővé
 a gyakorlati megvalósítást.
 
 == A dolgozat felépítése <sec:felepites>
@@ -136,7 +136,7 @@ A @ch:elmelet röviden összefoglalja a munkához szükséges elméleti háttere
 hírközlési lánc és az AWGN csatorna modelljét, a felhasznált modulációkat és a
 bitenkénti LLR-számítást, a vizsgált hibajavító kódokat, a csatornakapacitás és
 a hibaexponens fogalmát, valamint az aszinkron többszörös hozzáférésű csatorna
-és a szukcesszív interferencia-kioltás alapjait. A @ch:eljaras részletesen bemutatja az átfedéses
+és a szukcesszív interferencia-kioltás alapjait végül a többszintű kódolást. A @ch:eljaras részletesen bemutatja az átfedéses
 modulációs eljárást és a SIC-vevőt. A 4. fejezet a kifejlesztett szimulációs
 környezetet ismerteti, az 5. fejezet a szimulációs eredményeket mutatja be és
 értékeli. Végül a 6. fejezet összefoglalja munkánkat, és kitér a további
@@ -162,7 +162,7 @@ ahol a $z_i$ zajminták függetlenek, a jel átlagos szimbólumenergiája pedig
 $E_s = EE[|x_i|^2]$. A vevő a zajos $y_i$ mintákból bitenkénti
 megbízhatósági értékeket (LLR) számol, ezekből becsli a dekódoló a küldött
 üzenetet.
-
+//CN komplex normál oda írni
 A jel-zaj viszonyt szimbólumonként ($E_s\/N_0$) vagy információs bitenként
 ($E_b\/N_0$) szokás megadni. A kettő kapcsolata
 $ E_b / N_0 = 1 / (R m) dot E_s / N_0. $ <eq:ebn0>
@@ -185,13 +185,17 @@ Gray-címkézést használjuk, hanem egy másik szimbólum kiosztást is. Ebben 
 ($s_c$) és egy finom ($s_f$) bit összegeként írjuk fel:
 $ l = 2 s_c + s_f in {plus.minus 1, plus.minus 3}, quad
   x = 1 / sqrt(10) (l_I + j l_Q). $ <eq:qam16>
+  //redundáns szerkezetét át kell gondolni
 A 16-QAM jel így két 4-QAM jel szuperpozíciója: egy nagy amplitúdójú durva
 és egy kis amplitúdójú finom rész összege. A címkézés lényege, hogy a finom
 rész hozzájárulása mindig $plus.minus 1\/sqrt(10)$, függetlenül a durva bittől.
 Ha tehát a finom bitek ismertek, a hatásuk kivonható a vett jelből, és egy
-tisztán durva 4-QAM jel marad. Ugyanez a viszony áll fenn a BPSK és a QPSK
-között: a QPSK egyik tengelyét elhagyva BPSK jelet kapunk. Erre a
-tulajdonságra épül a 3. fejezetben bemutatott átfedéses moduláció.
+tisztán durva 4-QAM jel marad, amelyben a durva bitek döntési távolsága
+megkétszereződik. A QPSK is felírható két BPSK jel összegeként, ott azonban a két
+bit egymásra merőleges tengelyen ül, így az egyik ismerete a másik döntési
+távolságán nem változtat. A tisztítás ezért csak a 16-QAM-nál ad nyereséget, a
+BPSK–QPSK változatnál nem (@sec:bpsk-qpsk). Erre a tulajdonságra épül az
+átfedéses moduláció (@ch:eljaras).
 
 A dekódoló bemenete a kódszó bitjeire számolt log-likelihood arány (LLR).
 Egyenletes a priori eloszlás mellett a szimbólum $i$-edik bitjére
@@ -212,13 +216,14 @@ Shannon csatornakódolási tétele szerint minden csatornát jellemez egy $C$
 kapacitás: $C$-nél kisebb sebességgel a blokkhossz növelésével tetszőlegesen
 kis hibavalószínűség érhető el, nagyobb sebességgel viszont nem
 @shannon1948. A kapacitás a bemenet és a kimenet közötti kölcsönös információ
-maximuma az összes lehetséges bemeneti eloszlás közül:
-$ C = max_(p(x)) I(X; Y). $ 
-<eq:kapacitas_def>
-Vagy másképpen a a csatornán egy szimbólummal átvihető információ
-maximuma.
-Az @eq:awgn komplex AWGN csatornán $E_s$ átlagos teljesítmény mellett ezt a
-maximumot a Gauss-eloszlású bemenet adja, értéke @cover2006
+maximuma a megengedett bemeneti eloszlások közül. AWGN-csatornán a bemenetet
+átlagteljesítmény-korlát köti, enélkül ugyanis a jel felskálázásával $I(X; Y)$
+tetszőlegesen nagy lehetne:
+$ C = max_(p(x) : EE[|X|^2] <= E_s) I(X; Y). $ <eq:kapacitas_def>
+Szemléletesen ez a csatornán egy szimbólummal megbízhatóan átvihető információ
+maximuma. Az @eq:awgn komplex AWGN-csatornán a maximumot a körszimmetrikus
+komplex Gauss-eloszlású bemenet, $X tilde cal(C N)(0, E_s)$ adja, értéke
+@cover2006
 $ C = log_2 (1 + E_s / N_0) quad "bit/szimbólum". $ <eq:kapacitas>
 A gyakorlatban azonban egy véges, $2^m$ pontú konstellációból választjuk a
 szimbólumokat, így egy szimbólum legfeljebb $m$ bitet hordozhat. 
@@ -229,7 +234,7 @@ hibavalószínűség a blokkhossz növelésével. Ezt a hibaexponens írja le: $
 sebesség mellett a legjobb $n$ hosszú kódok hibavalószínűsége exponenciálisan
 csökken,
 $ P_e approx e^(-n E(R)), $ <eq:hibaexponens>
-ahol $E(R) > 0$ a hibaexponens @csiszar2021. Nagyobb hibaexponens mellett
+ahol $E(R) > 0$ a hibaexponens @csiszar2021 @gallager1965. Nagyobb hibaexponens mellett
 ugyanaz a hibavalószínűség rövidebb kódszavakkal is elérhető. Ezért van
 gyakorlati jelentősége annak, ha egy átviteli struktúra a hibaexponenst
 javítja.
@@ -253,7 +258,7 @@ Ez közvetlenül egy dekódolási eljárást ad. A vevő először a második fe
 Ezután a dekódolt üzenetből rekonstruált jelet levonja a vett jelből, és az első
 felhasználót már interferencia nélkül, $I(X_1; Y mid(|) X_2)$ sebességgel
 dekódolja. Ez a soros (szukcesszív) interferencia-kioltás (SIC), amellyel a
-kapacitástartomány sarokpontjai (@fig:mac) egyfelhasználós dekódolókkal is
+kapacitástartomány  *A* és *B* sarokpontjai  (@fig:mac) egyfelhasználós dekódolókkal is
 elérhetők @cover2006.
 
 #figure(
@@ -321,10 +326,10 @@ elérhetők @cover2006.
   },
   caption: [Kétfelhasználós MAC kapacitástartománya (rögzített bemeneti eloszlás
     mellett). Az *A* sarokpont SIC-kel érhető el, ha előbb $X_2$-t, a *B*, ha
-    előbb $X_1$-et dekódoljuk; a köztük lévő szakasz idő-megosztással.],
+    előbb $X_1$-et dekódoljuk; a köztük lévő szakasz idő-osztással vagy sebesség-sztással @rimoldi1996.],
 ) <fig:mac>
 
-A hibaexponensre vonatkozó fenti eredmények, azt feltételezik, hogy a felhasználók szinkronban, azonos
+A fenti eredmények, azt feltételezik, hogy a felhasználók szinkronban, azonos
 blokkhatárokkal adnak. Aszinkron esetben a felhasználók kódszavai egymáshoz
 képest el vannak tolva, így az egyik felhasználó egy kódszava a másik
 felhasználó két egymást követő kódszavával fed át. Farkas és Kói általános
@@ -333,10 +338,7 @@ leírására, és több esetben meghatározta a kapacitástartományt @farkas201
 Csiszár, Farkas és Kói a hibaexponenst vizsgálta, és megmutatta, hogy ha a
 késleltetést a küldők szándékosan választják meg (vezérelt aszinkronitás),
 a hibaexponens nagyobb lehet a szinkron átvitelre ismert legjobb értéknél
-@csiszar2021. Az eltolt kódszavak láncot alkotnak, ami a trellis-kódok
-szerkezetével rokon. Farkas ezt a kapcsolatot kihasználva az aszinkron MAC-ra
-kapott eredményekből trellis-kódok hibaexponensét vezette le @farkas2020.
-
+@csiszar2021. 
 Ezek az eredmények a kódszavak együttes dekódolását feltételezik, ami a
 láncolt szerkezet miatt a gyakorlatban nem valósítható meg. Munkánkban
 ehelyett SIC-et alkalmazunk: a láncot az egyik végéről kezdve kódszavanként
@@ -346,7 +348,38 @@ egy kódszót tévesen dekódolunk, a hibás kivonás a lánc következő kódsz
 dekódolását is rontja. Vizsgálatunk egyik központi kérdése, hogy a vezérelt
 aszinkronitás előnye ilyen, gyakorlatban is megvalósítható vevő mellett
 mennyiben marad meg.
+//TODO átfogalmazás, hogy ne hasonlítson annyira a bevezetésre
+== Többszintű kódolás és többlépcsős dekódolás <sec:mlc>
 
+A kódolás és a moduláció összekapcsolásának egyik klasszikus módja a többszintű
+kódolás (MLC) @imai1977. Egy $2^m$ pontú konstelláció címkéjének $m$ bitjét
+(szintjét) külön bináris kódok védik: a $t$-edik szimbólum $i$-edik címkebitje az
+$i$-edik szint kódszavának $t$-edik bitje. A vevő a szinteket egymás után
+dekódolja, mindig a már dekódolt szintek ismeretében (többlépcsős dekódolás, MSD).
+A kölcsönös információ láncszabálya szerint
+$ I(X; Y) = sum_(i = 1)^m I(B_i; Y | B_1, dots, B_(i - 1)), $ <eq:kapacitasszabaly>
+így ha az $i$-edik szint kódjának rátája a jobb oldal $i$-edik tagja, az MLC/MSD
+egyenletes bemenet mellett eléri a konstelláció kölcsönös információját
+(kapacitásszabály) @wachsmann1999. A címkézés az összeget nem, csak annak a
+szintek közötti megoszlását befolyásolja.
+
+MSD-hez a természetes címkézés a halmazparticionálás @ungerboeck1982: a már
+dekódolt szintek a konstellációt olyan részhalmazokra bontják, amelyeken belül a
+pontok távolsága nő, így a későbbi szintek megbízhatóbbak. A többszintű kód
+minimális távolsága a szintek kódjainak és a részhalmazoknak a távolságából
+számolható, a többlépcsős dekódolás pedig a teljes kód maximum-likelihood
+dekódolásánál jóval kisebb bonyolultsággal jó teljesítményt ad @calderbank1989.
+Az MSD ára a hibaterjedés: ha egy szint dekódolása hibás, a következő szintek
+rossz feltétel mellett dekódolódnak @wachsmann1999.
+
+Ha a szinteket nem egymás után, hanem egymástól függetlenül, a többi bitre
+marginalizálva dekódoljuk, csak $sum_i I(B_i; Y) <= I(X; Y)$ érhető el; a
+különbség Gray-címkézéssel kicsi @wachsmann1999. Erre épül a bitátszövéses kódolt
+moduláció (BICM), amely egyetlen kódot használ minden bithez @caire1998. Abotabl és Nosratinia szerint a többszintű kódolás többszörös hozzáférésű
+csatornaként is értelmezhető: mivel a szinteket egymástól függetlenül kódoljuk,
+úgy viselkednek, mint egy MAC különálló felhasználói @abotabl2014. Ebben a
+megközelítésben a többlépcsős dekódolás a MAC kapacitástartományának egyik
+sarokpontját valósítja meg, vagyis éppen a SIC-nek felel meg (@sec:mac).
 // = Az átfedéses modulációs eljárás <ch:eljaras>
 // =====================================================================
 //  3. FEJEZET – Az átfedéses modulációs eljárás
@@ -389,14 +422,14 @@ dekódolt kódszó hozzájárulását eltávolítja a vett jelből.
     let nyil = text(size: 12pt, fill: luma(90), sym.arrow.r)
     grid(
       columns: 9, column-gutter: 4pt, row-gutter: 10pt, align: horizon,
-      doboz[Adat-\ bitek], nyil, doboz[LDPC-\ kódoló], nyil,
+      doboz[Adat-\ bitek], nyil, doboz[Csatorna-\ kódoló], nyil,
       doboz(szin: rgb("#dbe8f8"))[Átfedéses\ modulátor], nyil,
       doboz[AWGN-\ csatorna], nyil, doboz(szin: rgb("#dbe8f8"))[SIC-\ vevő],
     )
     v(4pt)
     grid(
       columns: 9, column-gutter: 4pt, align: horizon,
-      doboz[Demoduláció\ (LLR)], nyil, doboz[LDPC-\ dekóder], nyil,
+      doboz[Demoduláció\ (LLR)], nyil, doboz[Csatorna-\ dekóder], nyil,
       doboz[Újra-\ kódolás], nyil, doboz[Rekonstrukció,\ kivonás], nyil,
       doboz[következő\ kódszó],
     )
@@ -407,7 +440,7 @@ dekódolt kódszó hozzájárulását eltávolítja a vett jelből.
 Az eljárás az aszinkron többszörös hozzáférésű csatorna (@sec:mac) egyfelhasználós
 megfelelője. Ha a páratlan sorszámú kódszavakat az első, a
 párosakat a második „felhasználónak” tekintjük, mindkét felhasználó egymás után,
- küldi a kódszavait, a második felhasználó kódszavai azonban valamennyi
+ küldi a kódszavait, a második felhasználó kódszavai azonban valamennyi (jelemzően $n/2$)
  eltolással kezdődnek. Minden kódszó így a másik felhasználó két
 egymást követő kódszavával fed át – pontosan úgy, mint az aszinkron MAC-modellben.
 A lényeges különbség, hogy a vevő nem együttesen, hanem szukcesszíven dekódol.
@@ -416,7 +449,8 @@ A lényeges különbség, hogy a vevő nem együttesen, hanem szukcesszíven dek
 
 Az eljárást a 4-QAM–16-QAM változaton, az általunk választott bitkiosztással mutatjuk
 be; a kiosztás választásának okait később fejtjük ki (@sec:sajat-kiosztas).
-
+// Eddigi esetekben (szinkron) a bitek ugyanaból a kódszóból jöttek, míg nálunk a két egymás követőből
+//MLC-hez való különbség, hogy a kódszó egyik fele más szonten van mint a másik, és az egyik felét használjuk a másik kitalálásához
 === Az adó <sec:ado>
 
 Jelölje $beta(c) = 1 - 2c$ a bit $plus.minus 1$ értékre képezését. A 16-QAM
@@ -538,7 +572,7 @@ ahol $q(dot)$ a 4-QAM leképezés, $cal(M)(d, f)$ pedig a @eq:16qam-konst szerin
     halad át: az elsőben a durva, a másodikban a finom réteget adja; a lánc két végén
     ritkább (4-QAM) modulációt használunk.],
 ) <fig:idovonal>
-
+/// ne legyen rés a dobozok között
 === A vevő <sec:vevo>
 
 A vett blokk $bold(y)_k = bold(x)_k + bold(w)_k$, $bold(w)_k tilde.op cal(C N)(0, N_0)$
@@ -610,7 +644,7 @@ A 4-QAM–16-QAM változatban ezzel szemben a durva és a finom bit ugyanazon a
 tengelyen osztozik (ld. @eq:16qam-konst), így a tisztítás valódi információt ad.
 Hogy ebből mekkora nyereség lesz, az a bitkiosztáson múlik (@sec:sajat-kiosztas).
 
-
+/// sebességet lehet ezzel állítani anékül, hogy a konstellációt vagy a kódolót dekódolót változtatnánk
 === A saját bitkiosztás <sec:sajat-kiosztas>  
 
 A 16-QAM konstelláción a négy bitet sokféleképpen oszthatjuk el a két kódszó között.
@@ -644,9 +678,7 @@ $ P_d^"saját" = Q(2 / (sqrt(10) sigma)), quad
   P_d^"Gray" = 1 / 2 [Q(1 / (sqrt(10) sigma)) + Q(3 / (sqrt(10) sigma))]
   >= P_d^"saját", $ <eq:jensen-q>
 ahol az egyenlőtlenség a Jensen-egyenlőtlenségből következik. Nagy jel-zaj viszony
-mellett a Gray-kiosztás hibáját a belső pontok tagja uralja, és ugyanahhoz a
-hibavalószínűséghez négyszeres (6 dB-lel nagyobb) jel-zaj viszony kell, mint a saját
-kiosztásnál. A saját kiosztás tehát a tisztított félben jobb.
+mellett a Gray-kiosztás hibáját a belső pontok tagja uralja, saját kiosztás tehát a tisztított félben jobb.
 
 === A tisztítás: kemény és lágy <sec:tisztitas>
 
@@ -752,21 +784,33 @@ aszinkronitás a kapacitáson nem változtat.
 A két kiosztás között csak az információ megoszlásában van különbség (@tab:mi): a
 saját kiosztás a finom (zavart) szerepben kevesebb, a durva (tisztított) szerepben
 több információt hordoz, mint a Gray-kiosztás.
-
+*Különbség a többszintű kódolástól.* A többszintű kódolásban (MLC) @imai1977 egy
+szimbólum két szintje két különböző komponenskódhoz tartozik, ezért a rátákat
+szintenként külön kell megválasztani @wachsmann1999; a @tab:mi szerint 9 dB-en a
+saját kiosztásnál a finom szint $0,98$, a durva $1,96$ bit/szimbólum rátát enged.
+Az átfedéses láncban ezzel szemben minden kódszó első fele a durva, második fele a
+finom szinten halad át, így minden kódszó egyenlő arányban látja mindkét szintet.
+Ideális kódra a feltétel ekkor egyetlen közös kódsebességre vonatkozik:
+$ R <= (I(F; Y) + I(D; Y | F)) / 4 = I(X; Y) / 4, $ <eq:kozos-rata>
+ahol $F$ és $D$ egy szimbólum két finom, illetve két durva bitje, a kölcsönös
+információk pedig bit/szimbólumban értendők. Az átfedéses lánc tehát egyetlen
+kóddal, szintenkénti rátatervezés nélkül valósítja meg a többlépcsős dekódolást.
 #figure(
   table(
     columns: 4, align: (left, center, center, center), stroke: none,
     table.hline(stroke: 0.6pt),
     table.header([], [$E_s \/ N_0 = 6$ dB], [$9$ dB], [$12$ dB]),
     table.hline(stroke: 0.4pt),
-    [saját: $I(F;Y) + I(D;Y|F)$], [0,24 + 0,86], [0,49 + 0,98], [0,79 + 1,00],
-    [Gray: $I(F;Y) + I(D;Y|F)$], [0,40 + 0,70], [0,64 + 0,82], [0,86 + 0,93],
-    [összeg (mindkettő)], [1,10], [1,46], [1,79],
-    [szinkron Gray, bitenként], [1,09], [1,46], [1,79],
+    [saját: $I(F;Y) + I(D;Y|F)$], [0,48 + 1,72], [0,97 + 1,95], [1,58 + 2,00],
+    [Gray: $I(F;Y) + I(D;Y|F)$], [0,80 + 1,40], [1,28 + 1,64], [1,72 + 1,86],
+    [összeg, $I(X;Y)$ (mindkettő)], [2,20], [2,93], [3,58],
+    [szinkron Gray, bitenként], [2,18], [2,93], [3,58],
     table.hline(stroke: 0.6pt),
   ),
-  caption: [Tengelyenkénti kölcsönös információ (bit/dimenzió) a két szerepben.
-    Monte Carlo-becslés; az összeg a kiosztástól független.],
+  caption: [Szimbólumonkénti kölcsönös információ (bit/szimbólum) a két szerepben,
+    16-QAM, egyenletes bemenet. Monte Carlo-becslés ($2 dot 10^6$ minta); az összeg
+    a kiosztástól független, a kerekítés miatt a tagok összege legfeljebb
+    $0,01$-gyel eltérhet.],
 ) <tab:mi>
 
 *A nyereség a hibaexponensben jelenik meg.* Az aszinkron szerkezet előnye nem a
@@ -845,7 +889,9 @@ ilyen hibaterjedés nincs, mert ott a tisztítás nem befolyásolja az LLR-t
 
 // = A szimulációs környezet <ch:szimulacio>
 // = Eredmények <ch:eredmenyek>
+
 // = Összefoglalás és kitekintés <ch:osszefoglalas>
+
 
 // =====================================================================
 //  IRODALOMJEGYZÉK

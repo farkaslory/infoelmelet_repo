@@ -1,5 +1,6 @@
 % Kulcsok: kisbetűs, a szövegben @kulcs formában (pl. @wang1999).
 % A Typst csak a ténylegesen hivatkozott tételeket listázza,
+% így a "MÉG NEM HIVATKOZOTT" blokk nyugodtan bent maradhat.
 
 % ---------------------------------------------------------------------
 %  Már hivatkozott / a szövegben @ nélkül szereplő források
@@ -51,8 +52,7 @@
   year      = {2020},
 }
 
-% Absztrakt: "[Forney, 1975]". A trellis-/konvolúciós kódok hibaexponensét
-% tárgyaló Forney-cikk 1974-es; 
+% Az absztrakt "[Forney, 1975]" hivatkozása erre a cikkre vonatkozik.
 @article{forney1974,
   author  = {Forney, Jr., G. David},
   title   = {Convolutional Codes {II}: Maximum-Likelihood Decoding},
@@ -63,7 +63,7 @@
   year    = {1974},
 }
 
-
+% Szövegben: "Wang1999"
 @article{wang1999,
   author  = {Wang, Xiaodong and Poor, H. Vincent},
   title   = {Iterative (Turbo) Soft Interference Cancellation and Decoding for Coded {CDMA}},
@@ -95,10 +95,16 @@
   pages   = {3--18},
   year    = {1965},
 }
-
-% ---------------------------------------------------------------------
-%  MÉG NEM HIVATKOZOTT – javasolt források
-% ---------------------------------------------------------------------
+@article{rimoldi1996,
+  title={A rate-splitting approach to the Gaussian multiple-access channel},
+  author={Rimoldi, Bixio and Urbanke, R{"u}diger},
+  journal={IEEE Transactions on Information Theory},
+  volume={42},
+  number={2},
+  pages={364--375},
+  year={1996},
+  publisher={IEEE}
+}
 
 % A szabadalom további Farkas–Kói hivatkozásai
 @inproceedings{farkas2014isit,
@@ -160,6 +166,27 @@
   year    = {1999},
 }
 
+% MLC kiterjesztése coset-kódokra; távolságszámítás, MSD vs. ML-dekódolás
+@article{calderbank1989,
+  author  = {Calderbank, A. Robert},
+  title   = {Multilevel Codes and Multistage Decoding},
+  journal = {IEEE Transactions on Communications},
+  volume  = {37},
+  number  = {3},
+  pages   = {222--229},
+  year    = {1989},
+  doi     = {10.1109/26.20095},
+}
+
+% MLC/MSD többfelhasználós csatornákon (MAC, broadcast, relay)
+@inproceedings{abotabl2014,
+  author    = {Abotabl, Ahmed Attia and Nosratinia, Aria},
+  title     = {Multi-Level Coding and Multi-Stage Decoding in {MAC}, Broadcast, and Relay Channel},
+  booktitle = {2014 IEEE International Symposium on Information Theory (ISIT)},
+  pages     = {96--100},
+  year      = {2014},
+}
+
 @article{ungerboeck1982,
   author  = {Ungerboeck, Gottfried},
   title   = {Channel Coding with Multilevel/Phase Signals},
@@ -181,6 +208,16 @@
   year    = {1998},
 }
 
+% A priori információt használó demapper (ha a lágy tisztítás így marad leírva)
+@article{li1997,
+  author  = {Li, Xiaodong and Ritcey, James A.},
+  title   = {Bit-Interleaved Coded Modulation with Iterative Decoding},
+  journal = {IEEE Communications Letters},
+  volume  = {1},
+  number  = {6},
+  pages   = {169--171},
+  year    = {1997},
+}
 
 % Turbo- és LDPC-kódok (1.1 TODO)
 @inproceedings{berrou1993,
