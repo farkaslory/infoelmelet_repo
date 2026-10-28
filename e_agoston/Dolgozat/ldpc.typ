@@ -12,7 +12,11 @@
 // -----------------------------------------------------------------------------
 #set document(title: "Az LDPC kódok rövid története, működése, használata és eredményei")
 #set page(paper: "a4", margin: 2.5cm, numbering: "1")
-#set text(lang: "hu", font: ("Libertinus Serif", "Liberation Serif"), size: 11pt)
+#set text(
+  lang: "hu",
+  font: "New Computer Modern",
+  size: 11pt
+)
 #set par(justify: true, leading: 0.7em, spacing: 1.1em)
 
 // Címsorok
@@ -40,7 +44,7 @@
 Az LDPC (azaz _Low Density Parity Check_, vagyis alacsony sűrűségű paritásellenőrzés) kódokat Robert G. Gallager 1960-ban írt doktori disszertációjából ismerhetjük @gallager1960 @gallager1962.
 Bár Gallager kódjának forradalminak kellett volna lennie, az akkori számítógépek hardvere egyszerűen nem bírta volna el az LDPC kódokhoz Gallager által feltételezett iteratív dekódolást.
 Az akkori lyukkártyás és vákuumcsöves számítógépek egyszerűen túlhevültek volna, vagy túl sok időbe telt volna a számításuk.
-Helyette az akkoriban elterjedtebb konkatenált kódok (pl. Reed–Solomon) kerültek előtérbe @forney1966 @reed1960, ugyanis a konkatenált kódolás két egyszerűbb kód (például egy külső Reed–Solomon és egy belső konvolúciós kód) egymás utáni összekapcsolásával alacsony számítási igényű, közvetlen dekódolást biztosított.
+Helyette az akkoriban elterjedtebb konkatenált kódok (pl. Reed–Solomon) kerültek előtérbe , ugyanis a konkatenált kódolás két egyszerűbb kód (például egy külső Reed–Solomon és egy belső konvolúciós kód) egymás utáni összekapcsolásával alacsony számítási igényű, közvetlen dekódolást biztosított.
 Ezzel szemben a hatvanas évek számítógépeiből még hiányzott az a feldolgozási sebesség és memória, amely az iteratív dekódolás többlépéses, teljes gráfon zajló valószínűségi üzenetváltásaihoz kellett.
 
 Ezután húsz évig nem történt előrelépés az LDPC kódok használatában, csak néhány lelkes kutató hivatkozott Gallager munkájára.
@@ -80,13 +84,13 @@ Ez ritkás Tanner-gráfot is jelent, aminek több előnye is van:
   Ezzel szemben a ritkás mátrixokban a lokális számítások végig egyszerűek maradnak, így a számításigény a kódhosszal csupán lineárisan nő.
   Ez teszi lehetővé, hogy a gyakorlatban is megközelítsük a csatornakapacitás elméleti határát (Shannon-limit) @mackay1999 @richardson2001.
 - *Párhuzamosíthatóság.* A párhuzamosíthatóság lehetséges más lineáris blokkkódoknál, vagy a konvolúciós építőelemekből álló turbó kódoknál is, az LDPC kódok ritkás mátrixai azonban tömeges párhuzamosíthatóságot tesznek lehetővé.
-  Ez jelentősen felgyorsítja a teljes kommunikációs lánc lépéseit, de főleg a dekódolást, mivel az LDPC kódoknál használt _belief propagation_ sok iterációs lépésben frissíti a valószínűségi üzeneteket @kschischang2001.
+  Ez jelentősen felgyorsítja a teljes kommunikációs lánc lépéseit, de főleg a dekódolást, mivel az LDPC kódoknál használt _belief propagation_ sok iterációs lépésben frissíti a valószínűségi üzeneteket .
 
 Az iparban az LDPC kódok legelterjedtebb formája a szabálytalan (_irreguláris_) LDPC kód.
-Míg a szabályos LDPC kódoknál a paritásellenőrző mátrix soraiban és oszlopaiban az egyesek száma szigorúan állandó, a szabálytalan LDPC kódokban a sor- és oszlopösszegek (a csomópontok fokszámai) változóak, ami lehetővé teszi a fontosabb adatbitek erősebb védelmét és az iteratív dekódolás során a hatékonyabb üzenetátadást @luby2001 @richardson2001design.
+Míg a szabályos LDPC kódoknál a paritásellenőrző mátrix soraiban és oszlopaiban az egyesek száma szigorúan állandó, a szabálytalan LDPC kódokban a sor- és oszlopösszegek (a csomópontok fokszámai) változóak, ami lehetővé teszi a fontosabb adatbitek erősebb védelmét és az iteratív dekódolás során a hatékonyabb üzenetátadást.
 A hatékony hibapropagáció és a gyors konvergencia érdekében a szabálytalan LDPC kódoknál a paritásellenőrző csomópontoknak alacsonyabb, míg a kulcsfontosságú üzenetbiteknek magasabb az élszámuk (fokszámuk), így a több kapcsolattal rendelkező bitcsomópontok erősebb védelmet kapnak az üzenetfrissítések során.
 
-Az iteratív dekódolás során a vevő lágy döntéses (_soft decision_) információval, úgynevezett _log-likelihood ratio_ (LLR) értékekkel dolgozik, amelyek a csatorna feszültségszintjei alapján megbecsülik, hogy mekkora eséllyel 0 vagy 1 az adott bit értéke @mackay2003.
+Az iteratív dekódolás során a vevő lágy döntéses (_soft decision_) információval, úgynevezett _log-likelihood ratio_ (LLR) értékekkel dolgozik, amelyek a csatorna feszültségszintjei alapján megbecsülik, hogy mekkora eséllyel 0 vagy 1 az adott bit értéke.
 
 
 // -----------------------------------------------------------------------------
@@ -96,13 +100,13 @@ Az iteratív dekódolás során a vevő lágy döntéses (_soft decision_) infor
 
 Manapság az LDPC kódokat szinte minden korszerű adatátviteli eljárásban megtalálhatjuk, mivel sok olyan tulajdonsággal rendelkeznek, amelyek alkalmassá teszik őket az adatátvitel széles körű használatára.
 
-Nagy áteresztőképességük és kiváló hibajavításuk miatt használják őket például az 5G @ts38212 @richardson2018 vagy a modern Wi-Fi (pl. Wi-Fi 6/7) @ieee80211ax szabványaiban.
-Műholdas kommunikációban is használják, ahol alacsony kódsebességgel ($R = 1/4$ vagy $1/2$) magas hibajavíthatóság érhető el, ami elengedhetetlen a hosszú és zajos csatornákon átküldött üzeneteknél @etsi302307.
-A mai, rézkábeles 10 Gb/s-os Ethernet (10GBASE-T) hálózatok is az LDPC kódoknak köszönhetik stabilitásukat és gyorsaságukat @ieee8023an.
+Nagy áteresztőképességük és kiváló hibajavításuk miatt használják őket például az 5G vagy a modern Wi-Fi (pl. Wi-Fi 6/7) szabványaiban.
+Műholdas kommunikációban is használják, ahol alacsony kódsebességgel ($R = 1/4$ vagy $1/2$) magas hibajavíthatóság érhető el, ami elengedhetetlen a hosszú és zajos csatornákon átküldött üzeneteknél.
+A mai, rézkábeles 10 Gb/s-os Ethernet (10GBASE-T) hálózatok is az LDPC kódoknak köszönhetik stabilitásukat és gyorsaságukat.
 
 Az LDPC kódok legérdekesebb mindennapi felhasználása a flash memóriákban van.
 Az SSD-k NAND flash memóriája az idővel és a használattal folyamatosan degradálódik, és ezzel a rajta tárolt információ is károsodna.
-Az LDPC kódok a háttértárakban és egyéb memóriákban fellépő bithibákat a már jól ismert iteratív eljárásokkal (pl. _belief propagation_) javítják ki @zhao2013.
+Az LDPC kódok a háttértárakban és egyéb memóriákban fellépő bithibákat a már jól ismert iteratív eljárásokkal (pl. _belief propagation_) javítják ki.
 Ezekkel matematikailag visszakövetkeztethető, hogy milyen adat lehetett az adott helyen, így az eredetileg eltárolt adat még évekkel a mentése után is megmarad.
 
 
@@ -116,7 +120,7 @@ Az iparban megismert szinkron modulációhoz képest a BER (_Bit Error Rate_) je
 A szinkron QPSK demodulációval működő kódok területén egyenesen minden letesztelt kód jobb eredményt ért el átfedéses (aszinkron) demodulálással.
 A korszerűbb QAM típusú demodulálásnál is voltak kódok, amelyekre jobb megoldás volt az átfedéses demodulálás használata.
 (T. B. C.)
-// TODO: kiegészíteni az eredményeket, és hivatkozást adni rájuk
+
 
 
 // -----------------------------------------------------------------------------

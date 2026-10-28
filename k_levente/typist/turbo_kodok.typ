@@ -40,55 +40,126 @@ A Turbo kódok legfőbb előnye a rendkívül meredek bithibaarány (BER) letör
 
 Kutatásunkban a kódokat ritka paritásellenőrző mátrixukkal ($H in {0,1}^(M times N)$) reprezentáljuk, és a vevőoldalon iteratív *Belief Propagation* (BP / LDPC) dekódolást alkalmazunk. Ennek sajátossága, hogy a rövid blokkhosszú Turbo kódok Tanner-gráfjában előforduló rövid (4-es és 6-os) hurkok alacsony jel-zaj viszonynál korlátozhatják a BP algoritmus konvergenciáját.
 
-= Szinkron és Aszinkron (AM2-4, AM4-16) átviteli architektúrák
+= A moduláris szimulációs és kiértékelő keretrendszer felépítése
 
-A szimulációs rendszer a független blokkokat továbbító *szinkron* rendszert hasonlítja össze a fél blokkhossznyi ($"BlockLengthHalf" = N/2$) eltolással egymásra szuperponált *aszinkron* láncokkal:
-
-- *Szinkron átvitel (`Sync_LDPC`, `Sync_LDPC_16`):* Minden kódszó független QPSK (2 bit/szimbólum) vagy 16-QAM (4 bit/szimbólum) szimbólumokká alakul. Nincs blokkok közötti interferencia.
-- *Aszinkron BPSK/QPSK lánc (`AM2_4`):* $K$ darab kódszó láncolt átvitele. A lánc első és utolsó félblokkja tiszta BPSK horgony, míg a belső $K-1$ szakaszon a $j$-edik blokk második fele és a $(j+1)$-edik blokk első fele QPSK szuperpozíciót alkot.
-- *Aszinkron 4-QAM/16-QAM lánc (`AM4_16`):* A lánc szélein 4-QAM, a belső átfedéseknél 16-QAM moduláció jön létre, ahol az új blokk a *durva biteket* (coarse), az előző blokk pedig a *finom biteket* (fine) adja.
-
-A vevőoldal *szekvenciális interferencia-kioltást* (SIC) végez: az első blokk dekódolása után visszakódolja az információs biteket, rekonstruálja az átfedő modulációs komponenst, majd kivonja azt a következő blokk vett jeléből. Az `AM4_16` esetén a finom bitek kivonása után a jel skálázása $"CLEAN_GAIN" = sqrt(5)/2$ erősítéssel, a zajvariancia pedig $"CLEAN_NVFAC" = 5/4$ szorzóval módosul:
-
-$ y_"clean" = (y_"rx" - s_"fine" dot 1/sqrt(10)) dot sqrt(5)/2, quad sigma_"clean"^2 = N_0 dot 5/4 $
+A szimulációs keretrendszert úgy alakítottuk ki, hogy képes legyen mind az LTE szabványos Turbo kódjait, mind az általános ritka paritásellenőrző (LDPC) mátrixokat egységes pipeline-ban kezelni. A folyamat a bemeneti fájlok beolvasásától a tömeges párhuzamosított szimuláción és a `.mat` fájlok generálásán át a `.png` ábrák automatikus kirajzolásáig terjed.
 
 #figure(
-  rect(width: 100%, inset: 10pt, stroke: 0.5pt + gray)[
-    #align(center)[
-      #text(9pt, font: "DejaVu Sans Mono")[
-        Időrések:   [ 1. félblokk ]   [ 2. félblokk ]   [ 3. félblokk ]   [ 4. félblokk ]\
-        1. Kódszó:  |--- 1. Fél ---|--- 2. Fél (SIC)-|\
-        2. Kódszó:                    |--- 1. Fél ---|--- 2. Fél (SIC)-|\
-        3. Kódszó:                                      |--- 1. Fél ---|--- 2. Fél ---|\
-        --------------------------------------------------------------------------------\
-        Kimenet:     [BPSK / 4-QAM]   [QPSK / 16-QAM]   [QPSK / 16-QAM]   [BPSK / 4-QAM]
-      ]
+  block(
+    fill: rgb("#f8fafc"),
+    stroke: 0.5pt + rgb("#cbd5e1"),
+    inset: 8pt,
+    radius: 6pt,
+    width: 100%,
+    align(center)[
+      #show raw: set text(size: 7.2pt)
+      #raw(
+        block: true,
+"┌────────────────────────────────┐         ┌────────────────────────────────┐
+│ LTE Turbo mátrixok (.txt)      │         │     LDPC mátrixok (.alist)     │
+└───────────────┬────────────────┘         └───────────────┬────────────────┘
+                │                                          │
+                ▼                                          ▼
+┌────────────────────────────────┐         ┌────────────────────────────────┐
+│       readTurboCode.m          │         │        read_alist_2.m          │
+└───────────────┬────────────────┘         └───────────────┬────────────────┘
+                └────────────────────┬─────────────────────┘
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ H (sparse logical) paritásmátrix    │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                    TÖMEGES VEZÉRLÉS: runSim.m / runMod.m                  │
+│       (Párhuzamos parfor szálkezelés és Worker-Chunking memóriavédelem)   │
+└────────────────────────────────────┬──────────────────────────────────────┘
+                                     │
+     ┌───────────────────────────────┴───────────────────────────────┐
+     ▼                                                               ▼
+┌─────────────────────────────────┐   ┌─────────────────────────────────────┐
+│    SZINKRON REFERENCIA MAGOK    │   │      ASZINKRON SIC LÁNCOLT MAGOK    │
+│  • Sync_LDPC.m    (QPSK, 2 b/s) │   │  • AM2_4.m        (BPSK/QPSK lánc)  │
+│  • Sync_LDPC_16.m (16-QAM, 4 b/s│   │  • AM4_16_Gray.m  (Gray konstelláció│
+│                                 │   │  • AM4_16_Soft.m  (Lágy LLR SIC)    │
+│                                 │   │  • AM4_16_Bidir.m (Kétirányú lánc)  │
+└────────────────┬────────────────┘   └──────────────────┬──────────────────┘
+                 └───────────────────┬───────────────────┘
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ Standardizált .mat adatkonténerek   │
+                  │   (ber, snrRange, n, K, place...)   │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │        plotNK.m / plotMat.m         │
+                  │ (N, K csoportosítás, tight scaling) │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │     Szemléltető .png grafikonok     │
+                  └─────────────────────────────────────┘"
+      )
     ]
-  ],
-  caption: [Az aszinkron félblokk-eltolásos szuperpozíció és a SIC időbeli felépítése ($K=3$ esetén).]
+  ),
+  caption: [A korszerűsített, kétirányú bemenetet és kibővített modulációs magokat támogató szimulációs adatfolyam.]
 )
 
-= A MATLAB szimulációs keretrendszer moduljai
+== A szimulációs pipeline moduljai és feladatköreik
 
-A szoftverarchitektúra négy funkcionális rétegre különül el, biztosítva a többmagos (`parfor`) skálázhatóságot és a memóriabiztos (Worker-Chunking) végrehajtást:
+A rendszer moduláris felépítésű, így új modulációs eljárások vagy bemeneti formátumok a vezérlő logika módosítása nélkül illeszthetők be:
 
 #figure(
   table(
-    columns: (1.3fr, 1.5fr, 2.5fr),
-    inset: 7pt,
+    columns: (1.4fr, 1.3fr, 2.3fr),
+    inset: 6.5pt,
     align: (left, left, left),
     fill: (x, y) => if y == 0 { rgb("#e2e8f0") } else { none },
-    [*Modul / Fájl*], [*Bemeneti paraméterek*], [*Funkció és kimenet*],
-    [`readTurboCode.m`], [`filename` (`.txt` útvonal)], [Eltávolítja a `NaN` sorokat, és előállítja a `H` (`sparse logical`) paritásmátrixot.],
-    [`Sync_LDPC.m`], [`H, maxFrames, snrRange, bitsPerSymbol`], [Szinkron QPSK / 16-QAM referencia szimulátor. Kimenet: `[Ldpc_ErrP, n, BlockLengthHalf]`.],
-    [`Sync_LDPC_16.m`], [`H, maxFrames, snrRange`], [Dedikált 16-QAM szinkron referencia átvitel LLR demodulációval.],
-    [`AM2_4.m`], [`H, maxFrames, K, snrRange, calcPlace`], [Aszinkron BPSK/QPSK lánc SIC vevővel. Kimenet: `[TurboErr, n, BlockLengthHalf, place]`.],
-    [`AM4_16.m`], [`H, maxFrames, K, snrRange, calcPlace`], [Aszinkron 4-QAM/16-QAM lánc durva/finom bitallokációval és zajvariancia-korrekcióval.],
-    [`runMod.m`], [`funcName, H, opts...`], [Univerzális diszpécser (`str2func`), amely egységes `struct` kimenetbe csomagolja a méréseket.],
-    [`runSim.m`], [`funcName, inDir, outDir, opts...`], [Kötegelt vezérlő: lefuttatja az adott modulációt a mappa összes mátrixára és `.mat`-ba ment.],
-    [`plotMat.m`], [`inputFolder, outputFolder`], [Beolvassa a `.mat` fájlokat, összepárosítja a görbéket, és dinamikus skálázással `.png`-t ment.]
+    [*Modul neve*], [*Bemenet*], [*Szerepkör és működés*],
+    [`readTurboCode.m`], [Szöveges `.txt` útvonal], [LTE Turbo kódok ritka paritásmátrixának beolvasása, `NaN` sorok szűrése és logikai formátumra hozása.],
+    [`read_alist_2.m`], [Szabványos `.alist` útvonal], [LDPC kódok David MacKay-féle alist formátumának beolvasása és sparse paritásmátrixszá konvertálása.],
+    [`Sync_LDPC.m`], [`H, maxFrames, snrRange`], [Szinkron QPSK referencia átvitel egzakt távolságnégyzet-alapú LLR számítással (2 bit/szimbólum).],
+    [`Sync_LDPC_16.m`], [`H, maxFrames, snrRange`], [Szinkron 16-QAM referencia mérés analitikus négyszintű LLR demodulációval (4 bit/szimbólum).],
+    [`AM2_4.m`], [`H, maxFrames, K, snrRange`], [Aszinkron BPSK/QPSK lánc szekvenciális interferencia-kioltással (SIC) és hibapozíció-naplózással.],
+    [`AM4_16_Gray.m`], [`H, maxFrames, K, snrRange`], [Aszinkron 4-QAM/16-QAM átvitel hagyományos Gray-kódolt szimbólumtérképezéssel a szuperpozíciós rétegeken.],
+    [`AM4_16_Soft.m`], [`H, maxFrames, K, snrRange`], [Aszinkron 4-QAM/16-QAM SIC, ahol a kioltás nem kemény döntésű visszakódoláson, hanem lágy LLR megbízhatósági súlyozáson alapul.],
+    [`AM4_16_Bidir.m`], [`H, maxFrames, K, snrRange`], [Kétirányú (oda-vissza) SIC lánc, amely a blokksorozat mindkét végéről indítva csökkenti a peremhatásból eredő hibaterjedést.],
+    [`runMod.m`], [`funcName, H, opts...`], [Univerzális diszpécser: string paraméter alapján meghívja a kívánt magot, és egységes struct-ba zárja az eredményeket.],
+    [`runSim.m`], [`funcName, inDir, outDir`], [Kötegelt motor: a megadott bemeneti mappa összes mátrixára lefut, és kimenti a szabványos `.mat` fájlokat.],
+    [`plotNK.m`], [`inputFolder, outputFolder`], [Kiolvassa a `.mat` fájlokból az $N$ és $K$ értékeket, kategóriák szerint színez (sync, bidir, gray, soft), és szoros skálázású `.png`-t ment.]
   ),
-  caption: [A kifejlesztett MATLAB függvény-pipeline moduljainak összefoglalása.]
+  caption: [A keretrendszerben implementált modulok funkcionális összefoglalása.]
+)
+
+= A szimulációs `.mat` adatkonténerek felépítése
+
+A hosszú lefutású szimulációk eredményeit a MATLAB bináris `.mat` fájljaiban tároljuk. Ez biztosítja, hogy a vizualizáció és a statisztikai kiértékelés teljesen független legyen a számítási folyamattól: ha a grafikonok stílusát, tengelyhatárait vagy kategóriáit módosítani kell, a többórás szimulációkat nem kell megismételni. Emellett a szerveroldali megszakadások ellen töréspont-védelmet (checkpointing) nyújt, és lebegőpontos pontossággal őrzi meg az alacsony, $"BER" < 10^(-5)$ értékeket is.
+
+A kimeneti fájlok elnevezése szigorú sémát követ:
+#align(center)[
+  `[MátrixAlapnév]_[ModulációTípus].mat` \
+  #text(9pt, fill: gray.darken(30%))[(Például: `LTE_TC_N132_K40_AM4_16_Gray.mat`, `LDPC_N1000_K500_Sync_QPSK.mat`)]
+]
+
+A szimulációs magok kimenetei egy egységes változóstruktúrába rendezve kerülnek elmentésre:
+
+#figure(
+  table(
+    columns: (1.5fr, 1.2fr, 1fr, 2.5fr),
+    inset: 7pt,
+    fill: (x, y) => if y == 0 { rgb("#e2e8f0") } else { none },
+    [*Változónév*], [*Típus*], [*Jelenlét*], [*Leírás és jelentés*],
+    [`ber`], [`1 x M double`], [Minden fájlban], [A mért bithiba-arány az SNR pontok függvényében (korábbi elnevezések: `am24Err`, `syncErr_QPSK` stb.).],
+    [`snrRange`], [`1 x M double`], [Minden fájlban], [A szimulált jel-zaj viszony vektor dB-ben (pl. $1 : 0.5 : 6$ vagy $10 : 1 : 20$).],
+    [`n`], [`1 x 1 double`], [Minden fájlban], [Az információs bitek száma blokkonként ($K_"info"$).],
+    [`BlockLengthHalf`], [`1 x 1 double`], [Minden fájlban], [A fél kódszóhossz szimbólumokban ($N/2$).],
+    [`maxFrames`], [`1 x 1 double`], [Minden fájlban], [Az egyetlen SNR ponton szimulált keretek száma.],
+    [`K`], [`1 x 1 double`], [Csak aszinkron], [A szuperponált láncban összekapcsolt kódszavak száma (pl. $K = 10$ vagy $K = 20$).],
+    [`place`], [`1 x K double`], [Csak aszinkron], [Hibapozíció-hisztogram: megmutatja, hogy a lánc melyik blokkjában fordult elő a legtöbb bithiba (SIC hibaterjedés vizsgálata).]
+  ),
+  caption: [A mentett `.mat` adatkonténerek egységesített belső változószerkezete.]
 )
 
 == Memóriakezelés és Worker-Chunking architektúra
