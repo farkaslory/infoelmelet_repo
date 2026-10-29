@@ -784,6 +784,7 @@ aszinkronitás a kapacitáson nem változtat.
 A két kiosztás között csak az információ megoszlásában van különbség (@tab:mi): a
 saját kiosztás a finom (zavart) szerepben kevesebb, a durva (tisztított) szerepben
 több információt hordoz, mint a Gray-kiosztás.
+
 *Különbség a többszintű kódolástól.* A többszintű kódolásban (MLC) @imai1977 egy
 szimbólum két szintje két különböző komponenskódhoz tartozik, ezért a rátákat
 szintenként külön kell megválasztani @wachsmann1999; a @tab:mi szerint 9 dB-en a
@@ -794,7 +795,12 @@ Ideális kódra a feltétel ekkor egyetlen közös kódsebességre vonatkozik:
 $ R <= (I(F; Y) + I(D; Y | F)) / 4 = I(X; Y) / 4, $ <eq:kozos-rata>
 ahol $F$ és $D$ egy szimbólum két finom, illetve két durva bitje, a kölcsönös
 információk pedig bit/szimbólumban értendők. Az átfedéses lánc tehát egyetlen
-kóddal, szintenkénti rátatervezés nélkül valósítja meg a többlépcsős dekódolást.
+kóddal, szintenkénti rátatervezés nélkül valósítja meg a többlépcsős dekódolást. A különbség lényege azonban nem a ráta, hanem a szerkezet: a többszintű
+kódolásban – és annak MAC-értelmezésében @abotabl2014 – a szintek ugyanabban az
+időrésben, szinkronban haladnak át, az átfedéses láncban viszont egymáshoz képest
+eltolt kódszavakhoz tartoznak. A lánc így egy aszinkron MAC-nak felel meg, ezért
+merül fel, hogy a vezérelt aszinkronitás hibaexponens-előnye (@sec:mac) itt is
+megjelenhet.
 #figure(
   table(
     columns: 4, align: (left, center, center, center), stroke: none,
