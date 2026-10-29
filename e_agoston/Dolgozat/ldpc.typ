@@ -115,14 +115,66 @@ Ezekkel matematikailag visszakövetkeztethető, hogy milyen adat lehetett az ado
 // -----------------------------------------------------------------------------
 == Eredmények az átfedéses szimbólummodulációban
 
-Az átfedéses szimbólumdemodulálásban az LDPC kódok kifejezetten jól teljesítettek.
-Az iparban megismert szinkron modulációhoz képest a BER (_Bit Error Rate_) jelentősen jobb volt.
-A szinkron QPSK demodulációval működő kódok területén egyenesen minden letesztelt kód jobb eredményt ért el átfedéses (aszinkron) demodulálással.
-A korszerűbb QAM típusú demodulálásnál is voltak kódok, amelyekre jobb megoldás volt az átfedéses demodulálás használata.
-(T. B. C.)
 
+=== Eredmények az LDPC kódokkal.
+Az átfedéses szimbólummodulálásban az LDPC kódok jó eredményeket produkáltak. Legtöbbször
+jobb BER-el (_Bit Error Rate_) rendelkezett, mint az iparban használt szinkron mondulációs módszer. Bár az eredmények nem mutattak meg egy egyértelműen legjobb kódot (pl. Bidir, Soft, Gray stb.), a 38 db letesztelt mátrixból csupán 2 esetben nem volt az átfedésesnek egy olyan változata, ami rosszabb lenne mint a szinkron eredményei.
 
+Az átfedéses szimbólummodulácót 2 jelmoduláció típussal teszteltük le:
+- *BPSK-QPSK*: 
+  A BPSK-QPSK (Binary Phase Shift Keying - Quadrature Phase Shift Keying) módszerben - azaz 2_4AM - az üzenet
+  kezdeti nem fedett felét a BPSK, míg a fedett részét QPSK moduláljuk. Ez azt jelenti, hogy a nem fedett
+  részét 1 bit/szimbólum (BPSK), míg a fedett részét 2 bit/szimbólum (QPSK) logika szerint moduláljuk.
+  Az ilyen modulációval elért eredmények igen jók lettek. Az LDPC mátrixokon lefuttatott szimulációk kis részében
+  tapasztaltuk azt, hogy a szinkron szimbólummodulációval kapott eredményének BER értéke
+  hamarabb érte el a 0-t mint az átfedéses eredményei.
+  #figure(
+  image("Képek/Jobb az átfedéses/2-4/Osszehasonlitas_LDPC_4_R058--066.png", width: 65%),
+  caption: [4 db paritás ellenőrző mátrix eredményei a szinkron QPSK és átfedéses BPSK-QPSK szimbólum modulációkra.],
+  ) <eredmeny1>
+  \Látható az 1. ábrán, hogy mindegyik letesztelt mátrix esetében a 0 hibahatárt fél- vagy több dB-el hamarabb eléri az átfedéses szimbólum moduláció.
+  \ \ A legszebb eredményünkben 4 dB-el korábban elérte a 0 hibahatárt az átfedéses szimbólummoduláció:
+  #figure(
+  image("Képek/Jobb az átfedéses/2-4/Grafikon_N672_K504.png", width: 65%),
+  caption: [Egy Wigig típusú LDPC paritás mátrixra lefutatottt szinkron QPSK és átfedéses BPSK-QPSK szimbólum moduláció eredményei.],
+  ) <eredmeny2>
+  \ Volt pár eset, ahol a szinkron jobb volt mint az átfedéses, de ez az esetek kisebb részét jelentette, a mátrixok túlnmyomó részében jobb volta az átfedéses.
+  #figure(
+  image("Képek/Rosszabb az átfedéses/2-4/Osszehasonlitas_LDPC_4_R05.png", width: 65%),
+  caption: [Példa arra az esetre, melyben jobb a szinkron- az átfedéses szimbólummodulációnál.],
+  ) <eredmeny3>
+  \ A 3. ábrán is lehet látni, hogy a kék színű görbére jobb az átfedéses, de a másik kettő görbe azt a példát demonstrálja, hogy a szinkron szimbólummoduláció egyes mátrixokra jobb mint az átfedéses.
 
+- *4QAM-16QAM*:
+  A 4QAM-16QAM (Quadrature Amplitude Modulation) - azaz 4_16AM - jelmodulációs folyamatban az üzenet kezdeti nem átfedett részét 4QAM moduláljuk és a átfedett üzenet részeket 16QAM moduláljuk. Ez azt jelenti, hogy hogy a nem átfedett üzenet félben 2bit/szimbólum (4QAM), míg az átfedett üzenet félben 4bit/szimbólum (16QAM) logikával kódolunk. A QAM annyiban külömbözik még a BPSK és a QPSK modulációtól, hogy nem csak fázisban-, hanem amplitúdó változással is modulálja a jelet.
+  Az 4_16AM fajta jelmodulációnak 4 verziójával futtatunk le szimulációkat. Ezek egyenként nem érik el azt a
+  kitűnő teljesítményt, mint a 2_4AM önmagában, de ha össze vonjuk az eredményeiket, akkor rikán van olyan 
+  eset, ahol egyik se jobb mint a szinkron szimbólum modulálás. A következő bekezdésekben bemutatjuk, hogy mindegyik jelmodulációs módszer képes jobb eredményt produkálni mint a szinkron szimbólum modulálás.
+  - *4_16AM*:
+    Az általános 4_16AM az első változata az általunk bemutatott 4QAM-16QAM modulációnak. Következő ábrán lehet látni, hogy ennek a 
+    mátrixnak az esetében jobban teljesít, mint az általános szinkron szimbólum modulálás:
+    #figure(
+    image("Képek/Jobb az átfedéses/4-16/Grafikon_N100_K50.png", width: 65%),
+    caption: [Példa arra az esetre, amelyben a 4_16AM jobb eredményt ér el, mint a 4 bit/szimbólum logikával kódolt szinkron szimbólum modulálás],
+    ) <eredmeny4> \
+  - *4_16AM Bidir*:
+    (A Bidir működéséről egy két mondat). A következő ábrán lehet látni, hogy a 4_16AM Bidir jobban tud teljesíteni, mint a szinkron szimbólum moduláció:
+    #figure(
+    image("Képek/Jobb az átfedéses/4-16/Grafikon_N480_K240.png", width: 65%),
+    caption: [Példa arra az esetre, amelyben a 4_16AM Bidir jobb eredményt ér el, mint a 4 bit/szimbólum logikával kódolt szinkron szimbólum modulálás],
+    ) <eredmeny5> \
+  - *4_16AM Gray*:
+    (A Gray működéséről egy két mondat). A következő ábrán lehet látni, hogy a 4_16AM Gray jobban tud teljesíteni, mint a szinkron szimbólum moduláció:
+    #figure(
+    image("Képek/Jobb az átfedéses/4-16/Grafikon_N120_K60.png", width: 65%),
+    caption: [Példa arra az esetre, amelyben a 4_16AM Gray jobb eredményt ér el, mint a 4 bit/szimbólum logikával kódolt szinkron szimbólum modulálás],
+    ) <eredmeny6> \
+  - *4_16AM Soft*:
+    (A Soft működéséről egy két mondat). A következő ábrán lehet látni, hogy a 4_16AM Soft jobban tud teljesíteni, mint a szinkron szimbólum moduláció:
+    #figure(
+    image("Képek/Jobb az átfedéses/4-16/Grafikon_N336_K168.png", width: 65%),
+    caption: [Példa arra az esetre, amelyben a 4_16AM Soft jobb eredményt ér el, mint a 4 bit/szimbólum logikával kódolt szinkron szimbólum modulálás],
+    ) <eredmeny6> \
 // -----------------------------------------------------------------------------
 // Irodalomjegyzék
 // -----------------------------------------------------------------------------
