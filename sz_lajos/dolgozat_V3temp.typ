@@ -125,14 +125,19 @@ paritásellenőrző mátrixok leírására, ami a későbbi években kulcsfontos
 LDPC-kódok iteratív, üzenetátadó (message-passing) dekódolásának megértésében és
 megvalósításában.
 
-Az LDPC-kódokat a kilencvenes évek közepén fedezték fel újra. Ekkor az 1993-ban
-megjelent turbókódok voltak elterjedtek @berrou1993, mivel a Shannon-határt sokkal
-jobban megközelítették, mint a korábban használt kódok. Az újrafelfedezést David J. C.
+A hibajavító kódolás történetében az 1993-as év hozott fordulópontot, amikor Claude
+Berrou, Alain Glavieux és Punya Thitimajshima bemutatták a turbókódokat @berrou1993.
+A konstrukció elsőként közelítette meg a Shannon-féle csatornakapacitási határt
+0,5 dB-en belülre, megvalósítható számítási bonyolultság mellett. A 3GPP a 4G Long
+Term Evolution (LTE) szabványban a turbókódokat választotta a fizikai megosztott
+adatcsatornák (PDSCH, PUSCH) hibajavító sémájának @ts36212.
+
+Az LDPC-kódokat a kilencvenes évek közepén fedezték fel újra. Az újrafelfedezést David J. C.
 MacKay és Radford M. Neal kezdeményezte, akik 1996-ban megmutatták, hogy Gallager
 kódjai iteratív dekódolással (például belief propagation, BP) szintén megközelítik a
 Shannon-határt @mackay1996 @mackay1999. A turbókódok felfedezése és az LDPC-kódok
 újrafelfedezése nyomán az iteratív dekódolás a korszerű hibajavító kódolás alapjává
-vált. Az LDPC-kódok működését és alkalmazásait a @sec:kodok foglalja össze.
+vált. Az LDPC- és a turbókódok működését a @sec:kodok foglalja össze.
 
 
 A csatornakódolás és a moduláció összekapcsolásának klasszikus módjait, a
@@ -262,6 +267,36 @@ egyszerűsödik. Az LLR előjele a bit becsült értékét, abszolút értéke a
 becslés megbízhatóságát adja meg.
 
 == Hibajavító kódok <sec:kodok>
+=== Turbókódok <sec:turbo>
+
+*Felépítés és működési elv.* Az LTE turbókódolója egy párhuzamosan összefűzött
+konvolúciós kód (PCCC), amelynek alapvető kódsebessége $R = 1\/3$. Két darab
+8 állapotú rekurzív szisztematikus konvolúciós (RSC) részkódolóból és egy belső
+bitátszövőből (interleaver) áll. Az RSC-kódolók generátormátrixa
+$ G(D) = mat(1, (1 + D + D^3) / (1 + D^2 + D^3)). $ <eq:rsc>
+Az LTE szabvány a klasszikus pszeudovéletlen átszövő helyett a kvadratikus
+permutációs polinom (QPP) alapú átszövőt vezette be @sun2005interleavers. Egy
+$K_"info"$ hosszúságú információs blokk esetén az $i$-edik kimeneti bit eredeti
+pozícióját a
+$ Pi(i) = (f_1 i + f_2 i^2) mod K_"info" $ <eq:qpp>
+kongruencia határozza meg, ahol $f_1$ és $f_2$ a blokkhossztól függő szabványos
+állandók. A kódolás végén mindkét RSC-kódoló regisztereit 3-3 farokbittel (összesen
+12 bittel) nullázzák, így a teljes kódszóhossz $N = 3 K_"info" + 12$ bit (például
+$K_"info" = 40$ esetén $N = 132$).
+
+*Előnyök és hátrányok.* A turbókódok legfőbb előnye a bithibaarány (BER) meredek
+letörése a vízesés-tartományban (waterfall region), valamint a QPP-átszövő ütközésmentes
+(contention-free) párhuzamosíthatósága. Hátrányuk a nagyobb jel-zaj viszonynál
+($"BER" < 10^(-5)$) jelentkező hibapadló (error floor), amelyet a viszonylag kis szabad
+távolság ($d_"free"$) okoz.
+
+*Dekódolás.* A hagyományos turbódekódolók összetevőnként a szimbólumonként optimális
+BCJR/MAP algoritmust alkalmazzák @bahl1974. Kutatásunkban azonban a kódokat ritka
+paritásellenőrző mátrixukkal, $H in {0, 1}^((N - K_"info") times N)$, reprezentáljuk,
+és a vevőoldalon iteratív BP-dekódolást alkalmazunk. Ennek sajátossága, hogy a rövid
+blokkhosszú turbókódok Tanner-gráfjában előforduló rövid (4 és 6 hosszú) körök kis
+jel-zaj viszonynál korlátozhatják a BP-algoritmus konvergenciáját
+@mceliece1998turbo.
 
 === LDPC-kódok <sec:ldpc>
 
