@@ -85,7 +85,7 @@ end
 function createNKPlot(inDir, outDir, N_val, K_val, groupFiles)
     plotTitle = sprintf("Bithiba-arány (BER) összehasonlítás: N = %d, K = %d", N_val, K_val);
     fig = figure(Name=plotTitle, NumberTitle="off", ...
-        Color="black", Position=[100, 100, 1000, 720], Visible="off");
+        Color="white", Position=[100, 100, 1000, 720], Visible="off");
     ax = axes(fig); hold(ax, "on");
 
     % Rögzített színpaletta a sötét háttérhez (kontrasztos RGB értékek)
@@ -176,12 +176,12 @@ function createNKPlot(inDir, outDir, N_val, K_val, groupFiles)
     grid(ax, "on"); grid(ax, "minor"); box(ax, "on");
     ax.FontSize = 11; ax.LineWidth = 1;
     ax.GridAlpha = 0.25; ax.MinorGridAlpha = 0.08;
-    ax.XColor = "w"; ax.YColor = "w";
-    title(ax, plotTitle, FontSize=13, FontWeight="bold", Color="w");
-    xlabel(ax, "SNR [dB]", FontSize=12, FontWeight="bold", Color="w");
-    ylabel(ax, "Bithiba-arány (BER)", FontSize=12, FontWeight="bold", Color="w");
+    ax.XColor = "k"; ax.YColor = "k";
+    title(ax, plotTitle, FontSize=13, FontWeight="bold", Color="k");
+    xlabel(ax, "SNR [dB]", FontSize=12, FontWeight="bold", Color="k");
+    ylabel(ax, "Bithiba-arány (BER)", FontSize=12, FontWeight="bold", Color="k");
     legend(ax, legendEntries, Location="northeastoutside", Interpreter="none", ...
-        FontSize=9, Box="off", TextColor="w");
+        FontSize=9, Box="off", TextColor="k");
 
     % Mentés 300 DPI felbontással
     outFileName = sprintf("Grafikon_N%d_K%d.png", N_val, K_val);
