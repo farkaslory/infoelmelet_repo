@@ -1085,7 +1085,44 @@ blokkonként egy kódszót kell feldolgoznia.
 
 // = Összefoglalás és kitekintés <ch:osszefoglalas>
 
+= Összefoglalás és kitekintés <ch:osszefoglalas>
 
+Dolgozatunkban a szabadalmi bejelentésben @farkas2026szab leírt átfedéses modulációt
+vizsgáltuk egyfelhasználós AWGN-csatornán. Az eljárás egymást követő kódszavakat
+eltolva, egymásra szuperponálva modulál, és a vevőben szukcesszív
+interferencia-kioltással dekódolja őket. Ezzel a vezérelt aszinkronitás gondolatát
+@csiszar2021 az aszinkron többszörös hozzáférésű csatornáról egyetlen adóra
+ültettük át. Megmutattuk, hogy a BPSK–QPSK változat a tengelyek merőlegessége miatt
+nem adhat nyereséget, a 4-QAM–16-QAM változatban viszont a tisztítás a durva bitek
+döntési távolságát megkétszerezi. Összevetettük a halmazparticionáló és a
+Gray-bitkiosztást kemény és lágy tisztítással, bevezettük a kétirányú dekódolást, és
+megvizsgáltuk az eljárás árát: a lánchossztól függő sebességveszteséget és a
+hibaterjedést.
+
+#block(width: 100%, inset: 8pt, radius: 3pt, fill: rgb("#fff3cd"),
+  stroke: rgb("#e0b000") + 0.6pt)[
+  *[HELYKITÖLTŐ – EREDMÉNYEK]* A szimulációs eredmények (5. fejezet) rövid összegzése:
+  melyik kiosztás és tisztítás milyen jel-zaj viszony mellett, mennyivel jobb a
+  szinkron átvitelnél, és mekkora a hibaterjedés hatása.
+]
+
+A lépcsőzetes, több rétegen átívelő kódszóátvitelt a csúszóablakos szuperpozíciós
+kódolás @wang2014swsc @wang2020swsc @kim2016swcm már alkalmazza, ott azonban a
+cél a kétfelhasználós interferenciacsatorna kezelése, és egyfelhasználós csatornán
+inkább a szerkezet hátrányait emelik ki. Munkánk ezzel szemben azt vizsgálja, hogy
+interferencia nélkül, önmagában is növelheti-e a megbízhatóságot. A többszintű
+kódolástól @imai1977 abban tér el, hogy egyetlen kódot használ szintenkénti
+rátatervezés nélkül, és a szintek egymáshoz képest eltolt kódszavakhoz tartoznak.
+
+*Továbbfejlesztési irányok.*
+
+- *A kétirányú és a lágy dekódolás kombinálása.* A két módszer a hibaterjedés két
+  különböző okát kezeli: a kétirányú dekódolás a lánc hosszát felezi, a lágy
+  tisztítás a bizonytalan döntések továbbadását mérsékli. Együttes alkalmazásuk a két
+  hatás összeadódását ígéri.
+- *Új csatornakódolók tesztelése.* Hosszú, kapacitást közelítő kódoknál az
+  átfedéses lánc a kölcsönös információ szintjén nem nyerhet; a nyereség rövid kódoknál
+  és nagy jel-zaj viszonynál várható.
 // =====================================================================
 //  IRODALOMJEGYZÉK
 // =====================================================================
