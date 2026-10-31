@@ -38,7 +38,8 @@ for s_idx = 1:length(snrRange)
         input = pskmod(input1, 4, pi/4);
 
         output = awgn(input, snr, 'measured');
-        output1 = pskdemod(output, 4, pi/4, OutputType="llr");
+        nVar    = 10^(-snr/10);
+        output1 = pskdemod(output, 4, pi/4, OutputType="llr", NoiseVariance=nVar);
 
         decodedData = ldpcDecode(output1, cfgLDPCDec, maxnumiter);
         hiba(k) = biterr(data, decodedData);
