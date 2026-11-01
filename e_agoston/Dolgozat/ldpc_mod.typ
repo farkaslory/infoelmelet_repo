@@ -200,7 +200,112 @@ A fenti ábrák olyan eseteket szemléltetnek, hogy adott mátrixokra az általu
   #figure(
   image("Képek/Új dolgok/Aggregált.png", width: 60%),
   caption: [$R=0,5$ sebességű mátrixokra kapott eredmények],
-  ) <eredmeny10>
+  ) <eredmeny10>.
+
+A következő ábrán lehet látni, a egyes LDPC moduláckiós variációknak a teljesítményét. Az ábramegadja, hogy a 29 paritásellenőrző mátrixra hányszor volt a megnevezett modulációnak a legjobb hibajavítása. 
+
+#let ldpc-sav-diagram-letisztult(
+  adatok,
+  max-érték: 10,
+  lépés: 2,
+  sáv-szélesség: 220pt,
+  sáv-magasság: 14pt,
+) = {
+  let x-osztások = range(0, int(max-érték / lépés) + 1).map(i => i * lépés)
+
+  align(center)[
+    #block(inset: 4pt)[
+      #grid(
+        columns: (auto, auto),
+        column-gutter: 10pt,
+        row-gutter: 6pt,
+        align: (right + horizon, left + horizon),
+
+        // 1. Sávok és kategórianevek
+        ..adatok.map(((cím, érték, szín)) => (
+          // Bal oldali megnevezés
+          text(size: 8.5pt, weight: "medium", hyphenate: false)[#cím],
+          
+          // Sáv és háttérbeli rácsvonalak
+          box(width: sáv-szélesség + 25pt, height: sáv-magasság)[
+            // Háttérbeli szaggatott rácsvonalak
+            #for val in x-osztások {
+              let pos = (val / max-érték) * sáv-szélesség
+              place(top + left, dx: pos)[
+                #line(
+                  angle: 90deg,
+                  length: sáv-magasság,
+                  stroke: (dash: "dotted", paint: luma(225), thickness: 0.5pt)
+                )
+              ]
+            }
+            
+            // Színes sáv
+            #place(top + left)[
+              #rect(
+                width: calc.max((érték / max-érték) * sáv-szélesség, 2pt),
+                height: sáv-magasság,
+                fill: szín,
+                radius: (right: 3pt, left: 0pt),
+              )
+            ]
+            
+            // Érték kiírása a sáv végére
+            #let val-pos = (érték / max-érték) * sáv-szélesség + 5pt
+            #place(top + left, dx: val-pos, dy: 1pt)[
+              #text(size: 8.5pt, weight: "bold")[#érték]
+            ]
+          ]
+        )).flatten(),
+
+        // 2. Alsó X-tengely, szorosan illesztett notch-ok és középre zárt felirat
+        [],
+        box(width: sáv-szélesség)[
+          #v(2pt)
+          // Tengelyvonal
+          #line(length: sáv-szélesség, stroke: 1pt + luma(120))
+          
+          // Ticks és számok közvetlenül a tengely alatt
+          #box(width: sáv-szélesség, height: 13pt)[
+            #for val in x-osztások {
+              let pos = (val / max-érték) * sáv-szélesség
+              place(top + left, dx: pos - 10pt)[
+                #box(width: 20pt)[
+                  #align(center)[
+                    #box(width: 1pt, height: 3pt, fill: luma(120))
+                    #v(0pt)
+                    #text(size: 7.5pt, fill: luma(100))[#val]
+                  ]
+                ]
+              ]
+            }
+          ]
+          
+          #v(1pt)
+          // "Darabszám" felirat pontosan a 0..10 tengelyközépre zárva
+          #align(center)[
+            #text(size: 8.5pt, weight: "bold", fill: luma(80))[Darabszám]
+          ]
+        ]
+      )
+    ]
+  ]
+}
+
+// Használat az LDPC mérési adatokkal:
+#figure(
+  ldpc-sav-diagram-letisztult((
+    ("Soft", 9, rgb("#2b5c8f")),
+    ("Döntetlen", 6, rgb("#8d99ae")),
+    ("Bidir", 4, rgb("#e07a5f")),
+    ("Gray", 3, rgb("#3a86c8")),
+    ("AM4_16", 2, rgb("#52a3a5")),
+    ("Szinkron", 2, rgb("#d62828")),
+    ("AM4_16/bidir", 1, rgb("#f4a261")),
+  )),
+  caption: [Az egyes modulációs eljárások legjobb teljesítményének gyakorisága LDPC kódok esetén.],
+) <abra-ldpc-darabszam>
+Az *AM4_16/Bidir* megnevezés azt takarja, hogy azokban az esetekben az AM4_16 és a Bidir modulálás azonosan jobb volt mint a szinkron szimbólummodulálás.
 // -----------------------------------------------------------------------------
 // Irodalomjegyzék
 // -----------------------------------------------------------------------------
