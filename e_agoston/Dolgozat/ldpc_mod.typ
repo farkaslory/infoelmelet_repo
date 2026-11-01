@@ -44,7 +44,7 @@
 Az LDPC (azaz _Low Density Parity Check_, vagyis alacsony sűrűségű paritásellenőrzés) kódokat Robert G. Gallager 1960-ban írt doktori disszertációjából ismerhetjük @gallager1960 @gallager1962.
 Bár Gallager kódjának forradalminak kellett volna lennie, az akkori számítógépek hardvere egyszerűen nem bírta volna el az LDPC kódokhoz Gallager által feltételezett iteratív dekódolást.
 Az akkori lyukkártyás és vákuumcsöves számítógépek egyszerűen túlhevültek volna, vagy túl sok időbe telt volna a számításuk.
-Helyette az akkoriban elterjedtebb konkatenált kódok (pl. Reed–Solomon) kerültek előtérbe , ugyanis a konkatenált kódolás két egyszerűbb kód (például egy külső Reed–Solomon és egy belső konvolúciós kód) egymás utáni összekapcsolásával alacsony számítási igényű, közvetlen dekódolást biztosított.
+Helyette az akkoriban elterjedtebb konkatenált kódok (pl. Reed–Solomon) kerültek előtérbe, ugyanis a konkatenált kódolás két egyszerűbb kód (például egy külső Reed–Solomon és egy belső konvolúciós kód) egymás utáni összekapcsolásával alacsony számítási igényű, közvetlen dekódolást biztosított.
 Ezzel szemben a hatvanas évek számítógépeiből még hiányzott az a feldolgozási sebesség és memória, amely az iteratív dekódolás többlépéses, teljes gráfon zajló valószínűségi üzenetváltásaihoz kellett.
 
 Ezután húsz évig nem történt előrelépés az LDPC kódok használatában, csak néhány lelkes kutató hivatkozott Gallager munkájára.
@@ -84,7 +84,7 @@ Ez ritkás Tanner-gráfot is jelent, aminek több előnye is van:
   Ezzel szemben a ritkás mátrixokban a lokális számítások végig egyszerűek maradnak, így a számításigény a kódhosszal csupán lineárisan nő.
   Ez teszi lehetővé, hogy a gyakorlatban is megközelítsük a csatornakapacitás elméleti határát (Shannon-limit) @mackay1999 @richardson2001.
 - *Párhuzamosíthatóság.* A párhuzamosíthatóság lehetséges más lineáris blokkkódoknál, vagy a konvolúciós építőelemekből álló turbó kódoknál is, az LDPC kódok ritkás mátrixai azonban tömeges párhuzamosíthatóságot tesznek lehetővé.
-  Ez jelentősen felgyorsítja a teljes kommunikációs lánc lépéseit, de főleg a dekódolást, mivel az LDPC kódoknál használt _belief propagation_ sok iterációs lépésben frissíti a valószínűségi üzeneteket .
+  Ez jelentősen felgyorsítja a teljes kommunikációs lánc lépéseit, de főleg a dekódolást, mivel az LDPC kódoknál használt _belief propagation_ sok iterációs lépésben frissíti a valószínűségi üzeneteket.
 
 Az iparban az LDPC kódok legelterjedtebb formája a szabálytalan (_irreguláris_) LDPC kód.
 Míg a szabályos LDPC kódoknál a paritásellenőrző mátrix soraiban és oszlopaiban az egyesek száma szigorúan állandó, a szabálytalan LDPC kódokban a sor- és oszlopösszegek (a csomópontok fokszámai) változóak, ami lehetővé teszi a fontosabb adatbitek erősebb védelmét és az iteratív dekódolás során a hatékonyabb üzenetátadást.
@@ -116,25 +116,60 @@ Ezekkel matematikailag visszakövetkeztethető, hogy milyen adat lehetett az ado
 == Eredmények az átfedéses szimbólummodulációban
 
 
-=== Eredmények az LDPC kódokkal.
+=== Eredmények az LDPC kódokkal
 Az átfedéses szimbólummodulálásban az LDPC kódok jó eredményeket produkáltak. Legtöbb esetben
-jobb BER-el (_Bit Error Rate_) rendelkezetek, mint az iparban használt szinkron mondulációs módszer. Bár az eredmények nem mutattak meg egy egyértelműen legjobb kódot, a 52 db letesztelt mátrixból – amely az LDPC paritásellenőrző mátrixok mellett a turbókódok reprezentációit is tartalmazza – csupán 3 esetben nem volt az 4QAM-16QAM átfedésesnek egy olyan változata, ami rosszabb lenne mint a szinkron eredményei, ez egy $tilde$94.2%-os előnyt jelent a szinkron szimbólummodulációval szemben.
+jobb BER-rel (_Bit Error Rate_) rendelkeztek, mint az iparban használt szinkron modulációs módszer. Bár az eredmények nem mutattak meg egy egyértelműen legjobb kódot, az 52 vizsgált mátrixból – amely az LDPC paritásellenőrző mátrixok mellett a turbókódok reprezentációit is tartalmazza – mindössze 3 esetben fordult elő, hogy az átfedéses eljárás alulmúlta a szinkron modulációt. A fennmaradó esetekben az átfedéses 4QAM-16QAM változatok legalább azonos vagy kedvezőbb BER-eredményt értek el, ami 94,2%-os sikerességi arányt jelent.
 
-Az átfedéses szimbólummodulácót 2 jelmoduláció típussal teszteltük le:
+Az átfedéses szimbólummodulációt 2 jelmoduláció típussal teszteltük le:
 - *BPSK-QPSK*: 
   A BPSK-QPSK (Binary Phase Shift Keying - Quadrature Phase Shift Keying) módszerben - azaz AM2_4 - az üzenet
   kezdeti nem fedett felét a BPSK, míg a fedett részét QPSK moduláljuk. Ez azt jelenti, hogy a nem fedett
   részét 1 bit/szimbólum (BPSK), míg a fedett részét 2 bit/szimbólum (QPSK) logika szerint moduláljuk.
-  A bemutatott eljárás teljesítménye szorosan illeszkedik a szinkron szimbólummoduláció során tapasztaltakhoz. Egyes helyeken észre lehet venni, hogy egy fél dB-el jobb, vagy rosszabb az egyik a másiknál. Ezen kívül sok esetben megegyeznek az eredményeik a hibajavításban.
+  A bemutatott eljárás teljesítménye szorosan illeszkedik a szinkron szimbólummoduláció során tapasztaltakhoz. Néhány esetben megfigyelhető, hogy egy 0,5 dB-lel jobb, vagy rosszabb az egyik a másiknál. Ezen kívül sok esetben megegyeznek az eredményeik a hibajavításban.
   A következő ábrán lehet látni, ezeket a kimeneteleket:
    #figure(
   image("Képek/Osszesített_LDPC_2_4.png", width: 60%),
-  caption: [Összesített ábra az LDPC kódok hiba hibajavításáról az átfedéses- és szinkron szimbólummodulác használatával],
+  caption: [Összesített ábra az LDPC kódok hibajavításáról az átfedéses- és szinkron szimbólummoduláció használatával],
   ) <eredmeny1>
-
+  \ 
+  A következő ábrákon lehet látni példákat olyan esetekre, melyekben az egyes mátrixokra az átfedéses szimbólummoduláció jobb, rosszabb vagy azonos hibajavításra volt képes.
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    row-gutter: 14pt,
+    column-gutter: 12pt,
+    align: center + horizon,
+    
+    // Felső bal kép
+    [
+      #image("Képek/új 2_4/Grafikon_N200_K100.png", width: 95%)
+      #v(4pt)
+      Ábra (a): Példa olyan mátrixra, amellyel rosszabbul teljesít az átfedéses szimbólummoduláció.
+    ],
+    
+    // Felső jobb kép
+    [
+      #image("Képek/új 2_4/Grafikon_N336_K168.png", width: 95%)
+      #v(4pt)
+      Ábra (b): Példa olyan mátrixra, amellyel jobban teljesít az átfedéses szimbólummoduláció.
+    ],
+    
+    // Alsó kép középen (mindkét oszlopot átívelve)
+    grid.cell(
+      colspan: 2,
+      [
+        #image("Képek/új 2_4/Grafikon_N384_K192.png", width: 48%)
+        #v(4pt)
+        Ábra (c): Példa az azonos hibajavításra.
+      ],
+    ),
+  ),
+  caption: text(size: 12pt)[A három mérési elrendezés összehasonlítása.],
+) <abra-fo>
+\ 
 - *4QAM-16QAM*:
-  A 4QAM-16QAM (Quadrature Amplitude Modulation) - azaz AM4_16 - jelmodulációs folyamatban az üzenet kezdeti nem átfedett részét 4QAM moduláljuk és a átfedett üzenet részeket 16QAM moduláljuk. Ez azt jelenti, hogy a nem átfedett üzenet félben 2bit/szimbólum (4QAM), míg az átfedett üzenet félben 4bit/szimbólum (16QAM) logikával kódolunk. A QAM annyiban külömbözik még a BPSK és a QPSK modulációtól, hogy nem csak fázisban-, hanem amplitúdó változással is modulálja a jelet.
-  Az AM4_16 fajta jelmodulációnak 4 verziójával futtatunk le szimulációkat. Diverz eredményeket kaptunk, mert egyik eljárás sem volt sokkal megbízhatóbb mint a többi. Hogy melyik a legjobb az jelenlegi tudomásunk szerint kód függő. A letesztelt 29 LDPC paritásellenörző mátrixból csupán 2-ben volt arra példa, hogy semelyik modulációs folyamatunk nem volt jobb a szinkron szimbólummodulációnál. Ez egy $tilde$93.1%-os arányt jelent, ami igen magas. A következő ábrákon bemutatjuk, hogy mindegyik jelmodulációs módszer képes jobb eredményt produkálni mint a szinkron szimbólum modulálás.
+  A 4QAM-16QAM (Quadrature Amplitude Modulation) - azaz AM4_16 - jelmodulációs folyamatban az üzenet kezdeti nem átfedett részét 4QAM moduláljuk és az átfedett üzenetrészeket 16QAM moduláljuk. Ez azt jelenti, hogy a nem átfedett üzenetfélben 2 bit/szimbólum (4QAM), míg az átfedett üzenetfélben 4 bit/szimbólum (16QAM) logikával modulálunk. A QAM annyiban különbözik még a BPSK és a QPSK modulációtól, hogy nemcsak fázis-, hanem amplitúdóváltozással is modulálja a jelet.
+  Az AM4_16 fajta jelmodulációnak 4 verziójával futtattunk le szimulációkat. Diverz eredményeket kaptunk, ugyanis egyik eljárás sem bizonyult általánosan dominánsnak. Hogy melyik a legjobb az jelenlegi tudomásunk szerint kódfüggő. A letesztelt 29 LDPC paritásellenőrző mátrixból csupán 2-ben volt arra példa, hogy az átfedéses eljárások egyike sem bizonyult jobbnak. Ez meggyőző, 93,1%-os sikerességi arányt jelent a szinkron eljáráshoz viszonyítva. A következő ábrákon bemutatjuk, hogy mindegyik jelmodulációs módszer képes jobb eredményt produkálni, mint a szinkron szimbólummodulálás.
     #grid(
   columns: (1fr, 1fr), // Két egyenlő szélességű oszlop
   gutter: 1.2em,       // Távolság a két kép között vízszintesen
@@ -155,17 +190,17 @@ Az átfedéses szimbólummodulácót 2 jelmoduláció típussal teszteltük le:
     caption: text(size: 10pt)[Példa, melyben a *Bidir* a legjobb],
   ),
 )
-A fenti ábrákon lehet látni példákat arra, hogy adott mátrixokra az általunk használt jelmodulációs típusok valamelyikével el lehet érni jobb- vagy lényegesebben jobb hibajavítást, mint a szinkron szimbólummodulációval.
-\ Egy érdekes észrevételünk az volt, hogy abban a 2 mátrixban, amelyben az átfedéses szimbólummodulációs folyatamok egyike sem volt jobb a szinkronnál, csak $R approx 0.6$ sebességek esetén fordultak elő.
+A fenti ábrák olyan eseteket szemléltetnek, hogy adott mátrixokra az általunk használt jelmodulációs típusok valamelyikével el lehet érni jobb- vagy lényegesen jobb hibajavítást, mint a szinkron szimbólummodulációval.
+\ Figyelemre méltó megfigyelés, hogy az a két eset, amikor az átfedéses eljárások egyike sem múlta felül a szinkron modulációt, kizárólag $R approx 0,6$ kódsebesség mellett fordult elő.
  #figure(
   image("Képek/Rosszabb az átfedéses/4-16/Osszehasonlitas_LDPC_R058--R066.png", width: 60%),
   caption: [Két példa amelyben jobb a szinkron szimbólummoduláció],
-  ) <eredmeny4>
-  \ Ezzel szemben a következő aggregált ábra azt szemlélteti, hogy $R = 0.5$ kódsebességnél valamennyi paritásellenőrző mátrixszal nagyobb mértékű javulás érhető el, mint a szinkron szimbólummoduláció alkalmazásával.
+  ) <eredmeny9>
+  \ Ezzel szemben a következő aggregált ábra azt szemlélteti, hogy $R = 0,5$ kódsebességnél valamennyi paritásellenőrző mátrixszal nagyobb mértékű javulás érhető el, mint a szinkron szimbólummoduláció alkalmazásával.
   #figure(
   image("Képek/Új dolgok/Aggregált.png", width: 60%),
-  caption: [$R=0.5$ sebességű mátrixokra kapott eredmények],
-  ) <eredmeny5>
+  caption: [$R=0,5$ sebességű mátrixokra kapott eredmények],
+  ) <eredmeny10>
 // -----------------------------------------------------------------------------
 // Irodalomjegyzék
 // -----------------------------------------------------------------------------
