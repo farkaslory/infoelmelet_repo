@@ -118,7 +118,7 @@ Ezekkel matematikailag visszakövetkeztethető, hogy milyen adat lehetett az ado
 
 === Eredmények az LDPC kódokkal.
 Az átfedéses szimbólummodulálásban az LDPC kódok jó eredményeket produkáltak. Legtöbb esetben
-jobb BER-el (_Bit Error Rate_) rendelkezetek, mint az iparban használt szinkron mondulációs módszer. Bár az eredmények nem mutattak meg egy egyértelműen legjobb kódot, a 39 db letesztelt mátrixból (ebbe nem csak az LDPC paritásellenőrző mátrixok-, hanem a turbókódok mátrixai is benne vannak.) csupán 2 esetben nem volt az 4QAM-16QAM átfedésesnek egy olyan változata, ami rosszabb lenne mint a szinkron eredményei, ez egy $tilde$95%-os előnyt jelent a szinkron szimbólummodulációval szemben.
+jobb BER-el (_Bit Error Rate_) rendelkezetek, mint az iparban használt szinkron mondulációs módszer. Bár az eredmények nem mutattak meg egy egyértelműen legjobb kódot, a 52 db letesztelt mátrixból – amely az LDPC paritásellenőrző mátrixok mellett a turbókódok reprezentációit is tartalmazza – csupán 3 esetben nem volt az 4QAM-16QAM átfedésesnek egy olyan változata, ami rosszabb lenne mint a szinkron eredményei, ez egy $tilde$94.2%-os előnyt jelent a szinkron szimbólummodulációval szemben.
 
 Az átfedéses szimbólummodulácót 2 jelmoduláció típussal teszteltük le:
 - *BPSK-QPSK*: 
@@ -134,8 +134,7 @@ Az átfedéses szimbólummodulácót 2 jelmoduláció típussal teszteltük le:
 
 - *4QAM-16QAM*:
   A 4QAM-16QAM (Quadrature Amplitude Modulation) - azaz AM4_16 - jelmodulációs folyamatban az üzenet kezdeti nem átfedett részét 4QAM moduláljuk és a átfedett üzenet részeket 16QAM moduláljuk. Ez azt jelenti, hogy a nem átfedett üzenet félben 2bit/szimbólum (4QAM), míg az átfedett üzenet félben 4bit/szimbólum (16QAM) logikával kódolunk. A QAM annyiban külömbözik még a BPSK és a QPSK modulációtól, hogy nem csak fázisban-, hanem amplitúdó változással is modulálja a jelet.
-  Az AM4_16 fajta jelmodulációnak 4 verziójával futtatunk le szimulációkat. Ezek egyenként nem érik el azt a
-  kitűnő teljesítmény javulást, mint a AM2_4-nél láttunk. Diverz eredményeket kaptunk, mert egyik eljárás sem volt sokkal megbízhatóbb mint a többi. Hogy melyik a legjobb az jelenlegi tudomásunk szerint kód függő. A letesztelt 29 LDPC paritásellenörző mátrixból csupán 2-ben volt arra példa, hogy semelyik modulációs folyamatunk nem volt jobb a szinkron szimbólummodulációnál. Ez egy $tilde$93.1%-os arányt jelent, ami igen magas. A következő ábrákon bemutatjuk, hogy mindegyik jelmodulációs módszer képes jobb eredményt produkálni mint a szinkron szimbólum modulálás.
+  Az AM4_16 fajta jelmodulációnak 4 verziójával futtatunk le szimulációkat. Diverz eredményeket kaptunk, mert egyik eljárás sem volt sokkal megbízhatóbb mint a többi. Hogy melyik a legjobb az jelenlegi tudomásunk szerint kód függő. A letesztelt 29 LDPC paritásellenörző mátrixból csupán 2-ben volt arra példa, hogy semelyik modulációs folyamatunk nem volt jobb a szinkron szimbólummodulációnál. Ez egy $tilde$93.1%-os arányt jelent, ami igen magas. A következő ábrákon bemutatjuk, hogy mindegyik jelmodulációs módszer képes jobb eredményt produkálni mint a szinkron szimbólum modulálás.
     #grid(
   columns: (1fr, 1fr), // Két egyenlő szélességű oszlop
   gutter: 1.2em,       // Távolság a két kép között vízszintesen
