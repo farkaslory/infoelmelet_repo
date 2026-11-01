@@ -1,0 +1,1655 @@
+
+#let cim = "Átfedéses szimbólum moduláció és soros interferencia-kioltás vizsgálata korszerű csatornakódok esetén"
+#let szerzok = ("Szabó Lajos Dániel","Kertész Levente","Érsek Ágoston", "Gál Marcell")
+#let konzulensek = ("Dr. Farkas Lóránt Ernő",)
+#let egyetem = "Budapesti Műszaki és Gazdaságtudományi Egyetem"
+#let kar = "Villamosmérnöki és Informatikai Kar" 
+#let ev = "2026"
+
+// ---------- Általános beállítások ----------
+#set document(title: cim, author: szerzok)
+#set page(paper: "a4", margin: (x: 2.5cm, y: 2.5cm))
+#set text(lang: "hu", size: 12pt)
+#set par(justify: true, leading: 0.8em, first-line-indent: 1.25em)
+#set heading(numbering: "1.1.")
+#set math.equation(numbering: "(1)")
+#show heading: set block(above: 1.6em, below: 1em)
+#set figure(numbering: "1.")
+#show figure.caption: it => context [
+  #it.counter.display(it.numbering) #lower(it.supplement): #it.body
+]
+
+// hivatkozási forma: @címke → „2. fejezet”, „1.2. alfejezet”, „3. ábra”, „(4)”
+#show ref: it => {
+  let el = it.element
+  if el == none { return it }
+  if el.func() == heading {
+    context {
+      let n = numbering(el.numbering, ..counter(heading).at(el.location()))
+      link(el.location(), [#n #if el.level > 1 [alfejezet] else if el.numbering == "A.1." [melléklet] else [fejezet]])
+    }
+  } else if el.func() == math.equation {
+    context link(el.location(),
+      numbering(el.numbering, ..counter(math.equation).at(el.location())))
+  } else if el.func() == figure {
+    context link(el.location(),
+      [#numbering(el.numbering, ..el.counter.at(el.location())) #lower(el.supplement)])
+  } else { it }
+}
+
+#show heading.where(level: 1): it => {
+  if it.numbering == "1.1." {
+    v(1.5em, weak: true)
+  } else {
+    pagebreak(weak: true)
+    v(2em)
+  }
+  text(size: 20pt, it)
+  v(1em)
+}
+
+// =====================================================================
+//  CÍMLAP
+// =====================================================================
+#page(numbering: none)[
+  #set align(center)
+  #set par(first-line-indent: 0pt)
+  #image("BME_logo_transparent_0.png", width: 40%)   
+  #text(size: 14pt, weight: "bold", egyetem) \
+  #text(size: 13pt, kar) \
+
+  #v(1fr)
+  #text(size: 14pt, smallcaps[Tudományos Diákköri Konferencia])
+  #v(1em)
+  #text(size: 22pt, weight: "bold", cim)
+  #v(1fr)
+
+  #grid(
+    columns: (1fr, 1fr),
+    align: (left, right),
+    [*Készítették:* \ #szerzok.join(linebreak())],
+    [*Konzulens:* \ #konzulensek.join(linebreak())],
+  )
+  #v(2em)
+  Budapest, #ev
+]
+
+// =====================================================================
+//  ÖSSZEFOGLALÓ
+// =====================================================================
+#set page(numbering: none)
+#heading(numbering: none, outlined: false)[Absztrakt]
+
+A digitális hírközlő rendszerek adatátviteli igénye az elmúlt évtizedben ugrásszerűen növekedett. A fizikai rétegben alkalmazott hibajavító csatornakódolási eljárások – mint az ipari szabványokban rögzített Turbo és LDPC kódok – mára megközelítették az elméleti Shannon-korlátot. A további teljesítménynövelés egyik lehetséges iránya olyan - a címben - átfedéses modulációs eljárás, amely a vevőoldali interferencia-kioltásra is támaszkodik.
+Hagyományos rendszerekben a csatornakódoló által előállított blokkokat egymástól függetlenül, diszjunkt szimbólumokká alakítva modulálják. Ezzel szemben az aszinkron vagy átfedéses modulációs struktúrákban az egymást követő kódszavak szimbólumai részben átfedik egymást a csatornán (például QPSK konstellációban közösen átvitt bitpárok révén). Míg a hagyományos eljárások blokkódokat hoznak létre, ez az eljárás Trellis-kódokat hoz létre, ami merőben új alapokra helyezi az ismert elméleti korlátokat @forney1974. A vevőoldalon a kódszavak szekvenciális dekódolása szükséges: az aktuális blokk sikeres dekódolása után annak interferenciáját rekonstruálni kell, majd kivonni a még detektálatlan jelekből (Successive/Decoding Interference Cancellation – SIC). Az eljárás kritikus pontja a hibaterjedés: ha a lánc elején téves dekódolás történik, a pontatlan interferencia-kivonás dominóeffektusként ronthatja a rákövetkező blokkok megbízhatóságát.
+
+Munkánkban ezen átfedéses modulációs és szekvenciális interferencia-kioltási architektúra működését és hibajavító képességét vizsgáljuk AWGN csatorna felett. Célunk annak feltárása, hogy a láncolt szimbólumstruktúra milyen feltételek és kódparaméterek mellett képes felülmúlni a hagyományos, független blokkátvitelt és ezek milyen hátrányokkal járnak.
+
+Ennek vizsgálatához moduláris szimulációs környezetet fejlesztettünk MATLAB nyelven, amely képes tetszőleges paritásellenőrző mátrixok (alist formátumú LDPC és txt formátumú Turbo kódok) kötegelt, párhuzamosított vizsgálatára. Megvalósítottuk az átfedéses BPSK-QPSK modulációs láncot, és kiterjesztettük 4QAM, 16QAM modulációra, és a  szekvenciális interferencia-kioltó vevőalgoritmust is mindkét esetre. Kiterjedt szimulációkat végeztünk, összehasonlítva a hagyományos szinkron és az aszinkron átfedéses rendszerek bithibaarányát (BER).
+
+
+
+// =====================================================================
+//  TARTALOMJEGYZÉK
+// =====================================================================
+#outline(title: "Tartalomjegyzék", indent: auto)
+
+// =====================================================================
+//  FŐ SZÖVEG
+// =====================================================================
+#set page(numbering: "1")
+#counter(page).update(1)
+
+= Bevezetés <ch:bevezetes>
+
+== Történelmi áttekintés <sec:motivacio>
+
+Egy digitális hírközlő rendszer tervezésekor alapvető kérdés, hogy adott sávszélesség
+és adóteljesítmény mellett mekkora sebességgel lehet megbízhatóan információt
+átvinni. Az elméleti választ Shannon csatornakódolási tétele adja meg @shannon1948: a
+csatorna kapacitásánál kisebb sebességgel a blokkhossz növelésével tetszőlegesen kis
+hibavalószínűség érhető el. A tétel azonban csak a megfelelő kódok létezését mondja
+ki; olyan kódot, amely a korlátot gyakorlatban is megvalósítható bonyolultsággal
+közelíti meg, évtizedekig nem ismertek.
+
+Az LDPC-kódokat (low-density parity-check, alacsony sűrűségű paritásellenőrző kódok)
+Robert G. Gallager 1960-ban írt doktori disszertációjából ismerhetjük @gallager1960
+@gallager1962. Bár Gallager kódjainak forradalminak kellett volna lennie, az általa
+feltételezett iteratív dekódolás többlépéses, a teljes gráfon zajló valószínűségi
+üzenetváltásaihoz az akkori számítógépekből hiányzott a szükséges feldolgozási sebesség
+és memória. Helyette az összefűzött (konkatenált) kódok kerültek előtérbe: két
+egyszerűbb kód, például egy külső Reed–Solomon- és egy belső konvolúciós kód egymás
+utáni összekapcsolása alacsony számítási igényű, közvetlen dekódolást biztosított.
+
+Ezután húsz évig nem történt előrelépés az LDPC-kódok használatában, csak néhány
+kutató hivatkozott Gallager munkájára. A csendet Michael Tanner 1981-es munkája
+szakította meg, amely bemutatta a róla elnevezett Tanner-gráfokat @tanner1981. Ezek a
+páros (bipartit) gráfok szemléletes, vizuális és matematikai struktúrát adtak a
+paritásellenőrző mátrixok leírására, ami a későbbi években kulcsfontosságúvá vált az
+LDPC-kódok iteratív, üzenetátadó (message-passing) dekódolásának megértésében és
+megvalósításában.
+
+A hibajavító kódolás történetében az 1993-as év hozott fordulópontot, amikor Claude
+Berrou, Alain Glavieux és Punya Thitimajshima bemutatták a turbókódokat @berrou1993.
+A konstrukció elsőként közelítette meg a Shannon-féle csatornakapacitási határt
+0,5 dB-en belülre, megvalósítható számítási bonyolultság mellett. A 3GPP a 4G Long
+Term Evolution (LTE) szabványban a turbókódokat választotta a fizikai megosztott
+adatcsatornák (PDSCH, PUSCH) hibajavító sémájának @ts36212.
+
+Az LDPC-kódokat a kilencvenes évek közepén fedezték fel újra. Az újrafelfedezést David J. C.
+MacKay és Radford M. Neal kezdeményezte, akik 1996-ban megmutatták, hogy Gallager
+kódjai iteratív dekódolással (például belief propagation, BP) szintén megközelítik a
+Shannon-határt @mackay1996 @mackay1999. A turbókódok felfedezése és az LDPC-kódok
+újrafelfedezése nyomán az iteratív dekódolás a korszerű hibajavító kódolás alapjává
+vált. Az LDPC- és a turbókódok működését a @sec:kodok foglalja össze.
+
+
+A csatornakódolás és a moduláció összekapcsolásának klasszikus módjait, a
+   többszintű kódolást és a bitátszövéses kódolt modulációt a @sec:mlc
+   foglalja össze.
+
+A többszörös hozzáférésű csatornák (MAC) információelméleti vizsgálatában
+természetes feltevés, hogy a felhasználók szinkronban, egymáshoz igazított
+blokkokban adnak. Csiszár, Farkas és Kói azonban megmutatta, hogy ha a küldők
+szándékosan, megválasztott késleltetéssel, azaz vezérelt aszinkronitással
+adnak, a hibaexponens nagyobb lehet a szinkron átvitelre ismert legjobb
+értéknél @csiszar2021. Az eredmény hátterét Farkas a trellis-kódok felől
+vizsgálta, és megmutatta, hogy a vezérelt aszinkron kódolás a Trellis-kódoknak egy gyakorlati realizációja. @farkas2020.
+== Motiváció
+Ezek az eredmények több felhasználóra és a kódszavak együttes dekódolására
+vonatkoznak, ami a gyakorlatban nehezen valósítható meg. Munkánk alapja az egyetem
+benyújtott szabadalmi bejelentése @farkas2026szab. Alapötlete, hogy a jelenséget
+egyetlen felhasználóra ültetjük át, mégpedig úgy, hogy ugyanazon adó egymást
+követő kódszavait egymáshoz képest eltolva, átfedéssel moduláljuk, mintha egy
+aszinkron MAC különböző felhasználói lennének. A vevőben a kódszavakat nem
+együttesen, hanem egymás után dekódoljuk, és a már dekódolt kódszó hatását
+kivonjuk a vett jelből (soros interferencia-kioltással, SIC). Ez teszi lehetővé
+a gyakorlati megvalósítást.
+
+A dolgozat leadási hetén tudomásunkra jutott, hogy lényegében azonos szerkezetet Wang,
+Kim és szerzőtársaik már korábban, az interferenciacsatorna felől kidolgoztak: ez
+a csúszóablakos szuperpozíciós kódolás (sliding-window superposition coding, SWSC)
+@wang2014swsc @wang2020swsc és annak kódolt modulációs megvalósítása, a
+csúszóablakos kódolt moduláció (SWCM) @kim2016swcm. Ott a kódszavak lépcsőzetes,
+több rétegen átívelő átvitelét az motiválja, hogy a kétfelhasználós
+interferenciacsatorna maximum-likelihood dekódolással elérhető
+sebességtartományát egyfelhasználós dekóderekkel, szukcesszív kioltással
+közelítsék meg. Az eljárást LTE-turbókódokkal megvalósították, és az 5G
+szabványosítás során is javasolták @wang2020swsc @kim2016swcm, a módszer tehát a
+gyakorlatban is használható. Ezek a munkák a lépcsőzetes szerkezet előnyét a
+többfelhasználós interferencia kezelésében látják; egyfelhasználós csatornán
+inkább a hátrányait, a hibaterjedést és a láncvégek miatti rátaveszteséget
+emelik ki @wang2020swsc. 
+Munkánk ezzel szemben az egyfelhasználós esetre
+összpontosít, és azt vizsgálja, megjelenik-e a vezérelt aszinkronitás
+hibaexponens-előnye @csiszar2021 a megbízhatóságban. A szabadalmi bejelentés
+@farkas2026szab és munkánk olyan általánosításokat ad – a láncvégek ritkább
+modulációját, a bitkiosztás (halmazparticionáló vagy Gray) és a tisztítás
+(kemény vagy lágy) összehangolását, valamint a kétirányú dekódolást –, amelyek a
+hibaterjedést mérséklik, és a módszert interferencia nélkül, önmagában is a
+megbízhatóság növelésére teszik alkalmassá.
+// TODO: zárómondat az 5. fejezet eredménye alapján (mennyi a nyereség, milyen
+// jel-zaj viszony / bithibaarány mellett a szinkron átvitelhez képest).
+
+== A dolgozat felépítése <sec:felepites>
+
+A @ch:elmelet röviden összefoglalja a munkához szükséges elméleti hátteret: a
+hírközlési lánc és az AWGN csatorna modelljét, a felhasznált modulációkat és a
+bitenkénti LLR-számítást, a vizsgált hibajavító kódokat, a csatornakapacitás és
+a hibaexponens fogalmát, valamint az aszinkron többszörös hozzáférésű csatorna
+és a szukcesszív interferencia-kioltás alapjait végül a többszintű kódolást. A @ch:eljaras részletesen bemutatja az átfedéses
+modulációs eljárást és a SIC-vevőt. A 4. fejezet a kifejlesztett szimulációs
+környezetet ismerteti, az 5. fejezet a szimulációs eredményeket mutatja be és
+értékeli. Végül a 6. fejezet összefoglalja munkánkat, és kitér a további
+fejlesztési lehetőségekre.
+
+// =====================================================================
+//  KÖVETKEZŐ FEJEZETEK – ide kerülnek a szövegrészek
+// =====================================================================
+= Elméleti háttér <ch:elmelet>
+
+== Hírközlési lánc és AWGN csatorna <sec:awgn>
+
+// TODO: blokkábra (kódoló -> moduláció -> AWGN -> demoduláció -> dekódoló)
+
+A vizsgált hírközlési lánc a szokásos felépítést követi. A $k$ bites
+üzenetet a csatornakódoló $n$ bites kódszóvá alakítja, a kódsebesség tehát
+$R = k\/n$. A modulátor a kódszó bitjeit $m$ bites csoportokban egy
+$cal(X) subset CC$ konstelláció pontjaira képezi le, $|cal(X)| = 2^m$ (ez a komplex alapsávi jel). A
+komplex alapsávi csatornát additív fehér Gauss-zajjal (AWGN) modellezzük
+@cover2006:
+$ y_i = x_i + z_i, quad z_i tilde cal(C N)(0, N_0), $ <eq:awgn>
+ahol a $z_i$ zajminták függetlenek, a jel átlagos szimbólumenergiája pedig
+$E_s = EE[|x_i|^2]$. A vevő a zajos $y_i$ mintákból bitenkénti
+megbízhatósági értékeket (LLR) számol, ezekből becsli a dekódoló a küldött
+üzenetet.
+//CN komplex normál oda írni
+A jel-zaj viszonyt szimbólumonként ($E_s\/N_0$) vagy információs bitenként
+($E_b\/N_0$) szokás megadni. A kettő kapcsolata
+$ E_b / N_0 = 1 / (R m) dot E_s / N_0. $ <eq:ebn0>
+Szimulációinkban a jelet egységnyi átlagteljesítményre normáljuk, és a zajt
+$E_s\/N_0$ szerint állítjuk be. Eltérő bit/szimbólum értékű rendszerek (például
+4-QAM és 16-QAM) tisztességes összevetéséhez ezért a @eq:ebn0 szerinti
+átszámítás szükséges.
+
+== Moduláció és bitenkénti LLR <sec:modulacio>
+
+Az egyik legegyszerűbb moduláció a bináris fázisbillentyűzés (BPSK), ahol egy bitet a
+$b |-> s = 1 - 2b in {plus.minus 1}$ leképezéssel viszünk át a valós tengelyen.
+A QPSK (más néven 4-QAM) két egymásra merőleges BPSK jel összege:
+$ x = 1 / sqrt(2) (s_I + j s_Q), $
+ahol $s_I$ és $s_Q$ egy-egy bitből képzett $plus.minus 1$ érték, az
+$1\/sqrt(2)$ tényező pedig az egységnyi átlagenergiát biztosítja.
+
+A 16-QAM-ot tengelyenként két bit határozza meg. Munkánkban nem csak a szokásos
+Gray-címkézést használjuk, hanem Ungerboeck halmazparticionáló (set partitioning, SP)
+címkézését is @ungerboeck1982. Ebben az esetben az amplitudószintet egy durva
+($s_c$) és egy finom ($s_f$) bit összegeként írjuk fel:
+$ l = 2 s_c + s_f in {plus.minus 1, plus.minus 3}, quad
+  x = 1 / sqrt(10) (l_I + j l_Q). $ <eq:qam16>
+  //redundáns szerkezetét át kell gondolni
+A 16-QAM jel így két 4-QAM jel szuperpozíciója: egy nagy amplitúdójú durva
+és egy kis amplitúdójú finom rész összege. A címkézés lényege, hogy a finom
+rész hozzájárulása mindig $plus.minus 1\/sqrt(10)$, függetlenül a durva bittől.
+Ha tehát a finom bitek ismertek, a hatásuk kivonható a vett jelből, és egy
+tisztán durva 4-QAM jel marad, amelyben a durva bitek döntési távolsága
+megkétszereződik. Ez éppen a halmazparticionálás elve: a finom bitek a
+konstellációt négy, kétszeres minimális távolságú 4-QAM részhalmazra bontják, a
+durva bitek pedig a részhalmazon belüli pontot választják ki. A QPSK is felírható két BPSK jel összegeként, ott azonban a két
+bit egymásra merőleges tengelyen ül, így az egyik ismerete a másik döntési
+távolságán nem változtat. A tisztítás ezért csak a 16-QAM-nál ad nyereséget, a
+BPSK–QPSK változatnál nem (@sec:bpsk-qpsk). Erre a tulajdonságra épül az
+átfedéses moduláció (@ch:eljaras).
+
+A dekódoló bemenete a kódszó bitjeire számolt log-likelihood arány (LLR).
+Egyenletes a priori eloszlás mellett a szimbólum $i$-edik bitjére
+$ L(b_i) = ln (P(b_i = 0 | y)) / (P(b_i = 1 | y))
+  = ln (sum_(x in cal(X)_i^0) exp(-|y - x|^2 \/ N_0))
+         / (sum_(x in cal(X)_i^1) exp(-|y - x|^2 \/ N_0)), $ <eq:llr>
+ahol $cal(X)_i^b$ azon konstellációpontok halmaza, amelyekben az $i$-edik bit
+értéke $b$. BPSK esetén ez az egyszerű $L(b) = 4 op("Re"){y} \/ N_0$ alakra
+egyszerűsödik. Az LLR előjele a bit becsült értékét, abszolút értéke a
+becslés megbízhatóságát adja meg.
+
+== Hibajavító kódok <sec:kodok>
+=== Turbókódok <sec:turbo>
+
+*Felépítés és működési elv.* Az LTE turbókódolója egy párhuzamosan összefűzött
+konvolúciós kód (PCCC), amelynek alapvető kódsebessége $R = 1\/3$. Két darab
+8 állapotú rekurzív szisztematikus konvolúciós (RSC) részkódolóból és egy belső
+bitátszövőből (interleaver) áll. Az RSC-kódolók generátormátrixa
+$ G(D) = mat(1, (1 + D + D^3) / (1 + D^2 + D^3)). $ <eq:rsc>
+Az LTE szabvány a klasszikus pszeudovéletlen átszövő helyett a kvadratikus
+permutációs polinom (QPP) alapú átszövőt vezette be @sun2005interleavers. Egy
+$K_"info"$ hosszúságú információs blokk esetén az $i$-edik kimeneti bit eredeti
+pozícióját a
+$ Pi(i) = (f_1 i + f_2 i^2) mod K_"info" $ <eq:qpp>
+kongruencia határozza meg, ahol $f_1$ és $f_2$ a blokkhossztól függő szabványos
+állandók. A kódolás végén mindkét RSC-kódoló regisztereit 3-3 farokbittel (összesen
+12 bittel) nullázzák, így a teljes kódszóhossz $N = 3 K_"info" + 12$ bit (például
+$K_"info" = 40$ esetén $N = 132$).
+
+*Előnyök és hátrányok.* A turbókódok legfőbb előnye a bithibaarány (BER) meredek
+letörése a vízesés-tartományban (waterfall region), valamint a QPP-átszövő ütközésmentes
+(contention-free) párhuzamosíthatósága. Hátrányuk a nagyobb jel-zaj viszonynál
+($"BER" < 10^(-5)$) jelentkező hibapadló (error floor), amelyet a viszonylag kis szabad
+távolság ($d_"free"$) okoz.
+
+*Dekódolás.* A hagyományos turbódekódolók összetevőnként a szimbólumonként optimális
+BCJR/MAP algoritmust alkalmazzák @bahl1974. Kutatásunkban azonban a kódokat ritka
+paritásellenőrző mátrixukkal, $H in {0, 1}^((N - K_"info") times N)$, reprezentáljuk,
+és a vevőoldalon iteratív BP-dekódolást alkalmazunk. Ennek sajátossága, hogy a rövid
+blokkhosszú turbókódok Tanner-gráfjában előforduló rövid (4 és 6 hosszú) körök kis
+jel-zaj viszonynál korlátozhatják a BP-algoritmus konvergenciáját
+@mceliece1998turbo.
+
+=== LDPC-kódok <sec:ldpc>
+
+Az LDPC-kódok a lineáris blokk-kódok családjához tartoznak, amelyek az iparban a
+leggyakrabban használt kódok közé sorolhatók @lin2004. Lényegük, hogy az adatot ($bold(m)$) $k$
+bites üzenetblokkokra osztják $m in bb(F)_2^k)$, és mindegyikhez redundáns paritásbiteket csatolva egy hosszabb, $n$ bites kódszót képeznek $bold(C) in bb(F)_2^n$(@sec:awgn).
+
+A kódolást egy  $G$ ($G in bb(F)_2^(k times n)$) generátormátrix végzi ($bold(c) = bold(m) G$), a
+kapott kódszó érvényességét pedig egy $(n - k) times n$ méretű $H$ paritásellenőrző
+mátrixszal ellenőrzik ($H bold(c)^T = bold(0)$). A vevő a vett szót megszorozza a $H$
+mátrixszal; ha az átvitel során nem sérült, a szorzat nullvektor. Ha hiba történt, a
+szorzat általában nem nulla: az így kapott $n - k$ hosszúságú vektor, a szindróma
+jelzi a hibát, és rövid kódoknál abból az is kiszámítható, mely bitek károsodtak.
+
+A kódokat az $(n, k, d)$ hármassal jellemzik, ahol $R = k\/n$ a kódsebesség, a $d$
+minimális Hamming-távolság pedig közvetlenül meghatározza, hány bites átviteli hibát
+képes a kód észlelni ($d - 1$) vagy javítani ($floor((d - 1)\/2)$).
+
+Ami megkülönbözteti az LDPC-kódokat a többi lineáris blokk-kódtól, az a nevükből is
+érthető módon a ritkás (sparse) paritásellenőrző mátrix. Ez ritkás Tanner-gráfot is
+jelent, aminek több előnye is van.
+
+*Közelítés a Shannon-határhoz.* Az LDPC-kódok nagy blokkméretek esetén megközelítik a
+Shannon-határt. Sűrű mátrixok esetén a dekódolás számítási igénye a kódhossz
+négyzetével vagy akár exponenciálisan is nőhet. Ezzel szemben a ritkás mátrixokban a
+lokális számítások végig egyszerűek maradnak, így a számításigény a kódhosszal csupán
+lineárisan nő. Ez teszi lehetővé, hogy a gyakorlatban is megközelítsük a
+csatornakapacitás elméleti határát @mackay1999 @richardson2001.
+
+*Párhuzamosíthatóság.* Párhuzamosítás más lineáris blokk-kódoknál vagy a konvolúciós
+építőelemekből álló turbókódoknál is lehetséges, az LDPC-kódok ritkás mátrixai azonban
+tömeges párhuzamosítást tesznek lehetővé. Ez jelentősen felgyorsítja a teljes
+kommunikációs lánc lépéseit, de főleg a dekódolást, mivel az LDPC-kódoknál használt
+BP-dekódolás sok iterációs lépésben frissíti a valószínűségi üzeneteket.
+
+Az iparban az LDPC-kódok legelterjedtebb formája a szabálytalan (irreguláris) LDPC-kód.
+Míg a szabályos LDPC-kódoknál a paritásellenőrző mátrix soraiban és oszlopaiban az
+egyesek száma szigorúan állandó, a szabálytalan LDPC-kódokban a sor- és oszlopösszegek
+(a csomópontok fokszámai) változóak, ami lehetővé teszi a fontosabb adatbitek erősebb
+védelmét és az iteratív dekódolás során a hatékonyabb üzenetátadást. A hatékony
+információterjedés és a gyors konvergencia érdekében a szabálytalan LDPC-kódoknál a
+paritásellenőrző csomópontoknak alacsonyabb, a kulcsfontosságú üzenetbiteknek pedig
+magasabb a fokszámuk, így a több kapcsolattal rendelkező bitcsomópontok erősebb
+védelmet kapnak az üzenetfrissítések során.
+
+Az iteratív dekódolás során a vevő lágy döntéses (soft decision) információval, a
+@eq:llr szerinti LLR-értékekkel dolgozik, amelyek a vett jelből megbecsülik, mekkora
+eséllyel 0 vagy 1 az adott bit értéke.
+
+*Alkalmazások.* Az LDPC-kódok elsősorban a nagy adatsebességű rendszerekben terjedtek
+el. Nagy kódsebességnél jellemzően alacsonyabb hibapadlót (error floor) érnek el, mint
+a turbókódok, amelyek inkább az alacsonyabb kódsebességű alkalmazásokban maradtak
+meg; elterjedésüket az is segítette, hogy a turbókódokat 2013-ig szabadalmak védték
+@berrou1995szab. Ma többek között az 5G adatcsatornáiban @ts38212, a Wi-Fi 6/7
+szabványokban @ieee80211ax, a műholdas kommunikációban @dvbs2, a rézkábeles
+10 Gb/s-os Ethernetben (10GBASE-T) @ieee8023an és az SSD-k flash memóriáiban
+@zhao2013ldpcssd is LDPC-kódok javítják a bithibákat.
+
+Munkánk szempontjából az LDPC-kódok legfontosabb tulajdonsága, hogy BP-dekódolásuk
+minden bitre lágy kimenetet (LLR-t) ad. A szukcesszív vevő ezt használja fel: a
+kemény tisztítás a kimenet előjeléből újrakódolt kódszót von ki, a lágy tisztítás
+pedig a kimenetből számolt extrinsic LLR-t használja csatorna oldalinformációval(Chanel side information) információként
+(@sec:tisztitas).
+
+// TODO: a BP-dekódolás rövid leírása (változó- és ellenőrző csomópontok üzenetei)
+// TODO: === Turbókódok <sec:turbo> (többiek)
+
+== Csatornakapacitás és hibaexponens <sec:kapacitas>
+
+Shannon csatornakódolási tétele szerint minden csatornát jellemez egy $C$
+kapacitás: $C$-nél kisebb sebességgel a blokkhossz növelésével tetszőlegesen
+kis hibavalószínűség érhető el, nagyobb sebességgel viszont nem
+@shannon1948. A kapacitás a bemenet és a kimenet közötti kölcsönös információ
+maximuma a megengedett bemeneti eloszlások közül. AWGN-csatornán a bemenetet
+átlagteljesítmény-korlát köti, enélkül ugyanis a jel felskálázásával $I(X; Y)$
+tetszőlegesen nagy lehetne:
+$ C = max_(p(x) : EE[|X|^2] <= E_s) I(X; Y). $ <eq:kapacitas_def>
+Szemléletesen ez a csatornán egy szimbólummal megbízhatóan átvihető információ
+maximuma. Az @eq:awgn komplex AWGN-csatornán a maximumot a körszimmetrikus
+komplex Gauss-eloszlású bemenet, $X tilde cal(C N)(0, E_s)$ adja, értéke
+@cover2006
+$ C = log_2 (1 + E_s / N_0) quad "bit/szimbólum". $ <eq:kapacitas>
+A gyakorlatban azonban egy véges, $2^m$ pontú konstellációból választjuk a
+szimbólumokat, így egy szimbólum legfeljebb $m$ bitet hordozhat. 
+A kapacitás csak azt mondja meg, milyen sebesség érhető el végtelen
+blokkhossz mellett. A gyakorlatban viszont véges, néhány száz vagy ezer bites
+kódszavakkal dolgozunk, ezért az is fontos, milyen gyorsan csökken a
+hibavalószínűség a blokkhossz növelésével. Ezt a hibaexponens írja le: $R < C$
+sebesség mellett a legjobb $n$ hosszú kódok hibavalószínűsége exponenciálisan
+csökken,
+$ P_e approx e^(-n E(R)), $ <eq:hibaexponens>
+ahol $E(R) > 0$ a hibaexponens @csiszar2021 @gallager1965. Nagyobb hibaexponens mellett
+ugyanaz a hibavalószínűség rövidebb kódszavakkal is elérhető. Ezért van
+gyakorlati jelentősége annak, ha egy átviteli struktúra a hibaexponenst
+javítja.
+
+== Aszinkron többszörös hozzáférésű csatorna és SIC <sec:mac>
+
+
+A többszörös hozzáférésű csatornán (MAC) több adó ad egyszerre egyetlen vevőnek. Két
+felhasználó esetén, $X_1$ és $X_2$ bemenettel, valamint $Y$ kimenettel, az
+$(R_1, R_2)$ sebességpár akkor érhető el, ha valamely független
+$p(x_1) p(x_2)$ bemeneti eloszlás mellett @cover2006
+$ R_1 <= I(X_1; Y mid(|) X_2), quad
+  R_2 <= I(X_2; Y mid(|) X_1), quad
+  R_1 + R_2 <= I(X_1, X_2; Y). $ <eq:mac>
+A teljes kapacitástartomány az így kapott tartományok uniójának konvex burka.
+
+A kölcsönös információ láncszabálya szerint
+$ I(X_1, X_2; Y) = I(X_2; Y) + I(X_1; Y mid(|) X_2)=  I(X_1; Y) + I(X_2; Y mid(|) X_1).  $ <eq:lancszabaly>
+Ez közvetlenül egy dekódolási eljárást ad. A vevő először a második felhasználó
+üzenetét dekódolja az elsőt zajnak tekintve, ami $I(X_2; Y)$ sebességig lehetséges.
+Ezután a dekódolt üzenetből rekonstruált jelet levonja a vett jelből, és az első
+felhasználót már interferencia nélkül, $I(X_1; Y mid(|) X_2)$ sebességgel
+dekódolja vagy fordítva. Ez a soros (szukcesszív) interferencia-kioltás (SIC), amellyel a
+kapacitástartomány  *A* és *B* sarokpontjai  (@fig:mac) egyfelhasználós dekódolókkal is
+elérhetők @cover2006.
+
+#figure(
+  {
+    // Méretezés: s = 1 bit hossza; az értékek a P1 = P2 = N = 1 Gauss-példából
+    let s = 5cm
+    let ox = 2.8cm          // origó x
+    let oy = 7.3cm          // origó y (lefelé nő)
+    let a = 0.585           // I(X1;Y) = I(X2;Y)
+    let c = 1.0             // I(X1;Y|X2) = I(X2;Y|X1)
+    let m = 1.35            // tengelyhossz
+    let P(x, y) = (ox + x * s, oy - y * s)
+    let vonal(p, q, st) = place(top + left, line(start: p, end: q, stroke: st))
+    let cimke(p, body, al: center, dx: 0pt, dy: 0pt) = place(
+      top + left,
+      dx: p.at(0) - 3cm + dx, dy: p.at(1) + dy,
+      box(width: 6cm, align(al, text(size: 9pt, body))),
+    )
+    let pont(p) = place(top + left, dx: p.at(0) - 2pt, dy: p.at(1) - 2pt,
+      circle(radius: 2pt, fill: black))
+    let nyil(p, irany) = {
+      let (x, y) = p
+      let pts = if irany == "x" {
+        ((x, y - 3pt), (x + 7pt, y), (x, y + 3pt))
+      } else {
+        ((x - 3pt, y), (x, y - 7pt), (x + 3pt, y))
+      }
+      place(top + left, polygon(fill: black, ..pts))
+    }
+    let szagg = (paint: gray.darken(30%), thickness: 0.5pt, dash: "dashed")
+
+    box(width: 12cm, height: 8.0cm, {
+      // kapacitástartomány (ötszög)
+      place(top + left, polygon(
+        fill: rgb("#4a90d9").lighten(75%),
+        stroke: rgb("#2a6fb5") + 1pt,
+        P(0, 0), P(c, 0), P(c, a), P(a, c), P(0, c),
+      ))
+      // összegsebesség-egyenes: R1 + R2 = c + a
+      vonal(P(c + a - 1.25, 1.25), P(1.25, c + a - 1.25),
+        (paint: rgb("#2a6fb5"), thickness: 0.6pt, dash: "dashed"))
+      // vetítővonalak
+      vonal(P(a, 0), P(a, c), szagg)
+      vonal(P(0, a), P(c, a), szagg)
+      // tengelyek
+      vonal(P(0, 0), P(m, 0), 0.8pt)
+      vonal(P(0, 0), P(0, m), 0.8pt)
+      nyil(P(m, 0), "x")
+      nyil(P(0, m), "y")
+      cimke(P(m, 0), $R_1$, dx: 0.5cm, dy: -0.25cm)
+      cimke(P(0, m), $R_2$, dy: -0.75cm)
+      // tengelyfeliratok
+      cimke(P(a, 0), $I(X_1; Y)$, dy: 0.15cm)
+      cimke(P(c, 0), $I(X_1; Y mid(|) X_2)$, dy: 0.15cm)
+      cimke(P(0, a), $I(X_2; Y)$, al: right, dx: -3.15cm, dy: -0.22cm)
+      cimke(P(0, c), $I(X_2; Y mid(|) X_1)$, al: right, dx: -3.15cm, dy: -0.22cm)
+      // sarokpontok
+      pont(P(c, a))
+      pont(P(a, c))
+      cimke(P(c, a), [*A*], dx: 0.3cm, dy: -0.2cm)
+      cimke(P(a, c), [*B*], dx: 0.25cm, dy: -0.5cm)
+      // összegkorlát felirata
+      cimke(P(1.0, 0.82), $R_1 + R_2 = I(X_1, X_2; Y)$, al: left, dx: 3.1cm)
+    })
+  },
+  caption: [Kétfelhasználós MAC kapacitástartománya (rögzített bemeneti eloszlás
+    mellett). Az *A* sarokpont SIC-kel érhető el, ha előbb $X_2$-t, a *B*, ha
+    előbb $X_1$-et dekódoljuk; a köztük lévő szakasz idő-osztással vagy sebesség-sztással @rimoldi1996.],
+) <fig:mac>
+
+A fenti eredmények, azt feltételezik, hogy a felhasználók szinkronban, azonos
+blokkhatárokkal adnak. Aszinkron esetben a felhasználók kódszavai egymáshoz
+képest el vannak tolva, így az egyik felhasználó egy kódszava a másik
+felhasználó két egymást követő kódszavával fed át. Farkas és Kói általános
+keretet adott az aszinkron MAC különböző késleltetési feltevéseinek
+leírására, és több esetben meghatározta a kapacitástartományt @farkas2014.
+Csiszár, Farkas és Kói a hibaexponenst vizsgálta, és megmutatta, hogy ha a
+késleltetést a küldők szándékosan választják meg (vezérelt aszinkronitás),
+a hibaexponens nagyobb lehet a szinkron átvitelre ismert legjobb értéknél
+@csiszar2021. 
+
+Ezek az eredmények a kódszavak együttes dekódolását feltételezik, ami a
+láncolt szerkezet miatt a gyakorlatban nem valósítható meg. Munkánkban
+ehelyett SIC-et alkalmazunk: a láncot az egyik végéről kezdve kódszavanként
+dekódoljuk, ami a ritkább moduláció miatt remélhetőleg effektívebb, majd minden dekódolt kódszó hatását levonjuk a vett jelből, remélve, hogy a következő kódszó dekódolását is megbízhatóbbá tesszük. Ez
+egyfelhasználós dekódolókkal megvalósítható @wang2020swsc, ára viszont a hibaterjedés: ha
+egy kódszót tévesen dekódolunk, a hibás kivonás a lánc következő kódszavainak
+dekódolását is rontja. Vizsgálatunk egyik központi kérdése, hogy a vezérelt
+aszinkronitás előnye ilyen, gyakorlatban is megvalósítható vevő mellett
+mennyiben marad meg.
+//TODO átfogalmazás, hogy ne hasonlítson annyira a bevezetésre
+== Többszintű kódolás és többlépcsős dekódolás <sec:mlc>
+
+A kódolás és a moduláció összekapcsolásának egyik klasszikus módja a többszintű
+kódolás (MLC) @imai1977. Egy $2^m$ pontú konstelláció címkéjének $m$ bitjét
+(szintjét) külön bináris kódok védik: a $t$-edik szimbólum $i$-edik címkebitje az
+$i$-edik szint kódszavának $t$-edik bitje. A vevő a szinteket egymás után
+dekódolja, mindig a már dekódolt szintek ismeretében (többlépcsős dekódolás, MSD).
+A kölcsönös információ láncszabálya szerint
+$ I(X; Y) = sum_(i = 1)^m I(B_i; Y | B_1, dots, B_(i - 1)), $ <eq:kapacitasszabaly>
+így ha az $i$-edik szint kódjának rátája a jobb oldal $i$-edik tagja, az MLC/MSD
+egyenletes bemenet mellett eléri a konstelláció kölcsönös információját
+(kapacitásszabály) @wachsmann1999. A címkézés az összeget nem, csak annak a
+szintek közötti megoszlását befolyásolja.
+
+MSD-hez a természetes címkézés a halmazparticionálás @ungerboeck1982: a már
+dekódolt szintek a konstellációt olyan részhalmazokra bontják, amelyeken belül a
+pontok távolsága nő, így a későbbi szintek megbízhatóbbak. Munkánkban is ezt a
+címkézést használjuk (@sec:sajat-kiosztas). A többszintű kód
+minimális távolsága a szintek kódjainak és a részhalmazoknak a távolságából
+számolható, a többlépcsős dekódolás pedig a teljes kód maximum-likelihood
+dekódolásánál jóval kisebb bonyolultsággal jó teljesítményt ad @calderbank1989.
+Az MSD ára a hibaterjedés: ha egy szint dekódolása hibás, a következő szintek
+rossz feltétel mellett dekódolódnak @wachsmann1999.
+
+Ha a szinteket nem egymás után, hanem egymástól függetlenül, a többi bitre
+marginalizálva dekódoljuk, csak $sum_i I(B_i; Y) <= I(X; Y)$ érhető el; a
+különbség Gray-címkézéssel kicsi @wachsmann1999. Erre épül a bitátszövéses kódolt
+moduláció (BICM), amely egyetlen kódot használ minden bithez @caire1998. Abotabl és Nosratinia szerint a többszintű kódolás többszörös hozzáférésű
+csatornaként is értelmezhető: mivel a szinteket egymástól függetlenül kódoljuk,
+úgy viselkednek, mint egy MAC különálló felhasználói @abotabl2014. Ebben a
+megközelítésben a többlépcsős dekódolás a MAC kapacitástartományának egyik
+sarokpontját valósítja meg, vagyis éppen a SIC-nek felel meg (@sec:mac).
+//TODO hivatkozni a Wang 2014 cikkére
+// = Az átfedéses modulációs eljárás <ch:eljaras>
+// =====================================================================
+//  3. FEJEZET – Az átfedéses modulációs eljárás
+
+// =====================================================================
+
+
+#let abrahely(szoveg) = rect(
+  width: 100%, height: 5.5cm, radius: 3pt,
+  stroke: (paint: luma(160), thickness: 0.6pt, dash: "dashed"),
+  align(center + horizon, text(size: 9pt, fill: luma(110), szoveg)),
+)
+
+= Az átfedéses modulációs eljárás <ch:eljaras>
+
+Ebben a fejezetben bemutatjuk a szabadalmi bejelentésben @farkas2026szab leírt
+átfedéses modulációs eljárást és a hozzá
+tartozó szukcesszív vevőt. Először áttekintjük a rendszer felépítését és
+jelöléseit, majd egy konkrét példán lépésről lépésre végigkövetjük az adó és a vevő
+működését. Ezt követően indokoljuk azokat a tervezési döntéseket, amelyek a különböző
+változatokhoz vezettek, végül megvizsgáljuk az eljárás korlátait: a hibaterjedést és
+azt, hogy a nyereségért cserébe mit kell feláldozni.
+
+== Áttekintés <sec:attekintes>
+
+A rendszer felépítése a következő (@fig:blokkvazlat). Az adó $L$ darab, egyenként $2n$
+bit hosszú kódszót ($bold(c)_1, dots, bold(c)_L$) állít elő ugyanazzal a
+csatornakódolóval. Minden kódszót két, $n$ bites félre bontunk:
+$bold(c)_k = (bold(c)_k^((1)), bold(c)_k^((2)))$, ahol $bold(c)_k^1$ a páratlan  $bold(c)_k^1$ a páros bitek.
+Az átfedéses modulátor az egymást követő kódszavakat úgy képezi le, hogy a $k$-adik
+kódszó második fele $bold(c)_k^2$ és a $(k+1)$-edik kódszó első fele $bold(c)_(k+1)^1$ *ugyanazokon* a szimbólumokon
+osztozik. A vevő a láncot az egyik végéről kezdve kódszavanként dekódolja, és minden
+dekódolt kódszó hozzájárulását eltávolítja a vett jelből.
+
+#figure(
+  {
+    set text(size: 9pt)
+    let doboz(t, szin: luma(245)) = box(
+      inset: (x: 6pt, y: 5pt), radius: 3pt, fill: szin,
+      stroke: luma(150) + 0.6pt, align(center, t))
+    let nyil = text(size: 12pt, fill: luma(90), sym.arrow.r)
+    grid(
+      columns: 9, column-gutter: 4pt, row-gutter: 10pt, align: horizon,
+      doboz[Adat-\ bitek], nyil, doboz[Csatorna-\ kódoló], nyil,
+      doboz(szin: rgb("#dbe8f8"))[Átfedéses\ modulátor], nyil,
+      doboz[AWGN-\ csatorna], nyil, doboz(szin: rgb("#dbe8f8"))[SIC-\ vevő],
+    )
+    v(4pt)
+    grid(
+      columns: 9, column-gutter: 4pt, align: horizon,
+      doboz[Demoduláció\ (LLR)], nyil, doboz[Csatorna-\ dekóder], nyil,
+      doboz[Újra-\ kódolás], nyil, doboz[Rekonstrukció,\ kivonás], nyil,
+      doboz[következő\ kódszó],
+    )
+  },
+  caption: [A rendszer blokkvázlata (felül) és a SIC-vevő egy lépése (alul).],
+) <fig:blokkvazlat>
+
+Az eljárás az aszinkron többszörös hozzáférésű csatorna (@sec:mac) egyfelhasználós
+megfelelője. Ha a páratlan sorszámú kódszavakat az első, a
+párosakat a második „felhasználónak” tekintjük, mindkét felhasználó egymás után,
+ küldi a kódszavait, a második felhasználó kódszavai azonban valamennyi (jelemzően $n/2$)
+ eltolással kezdődnek. Minden kódszó így a másik felhasználó két
+egymást követő kódszavával fed át – pontosan úgy, mint az aszinkron MAC-modellben.
+A lényeges különbség, hogy a vevő nem együttesen, hanem szukcesszíven dekódol.
+Ugyanezt a blokkszintű leképezést – a kódszó első fele az egyik blokkban, második
+fele a következő blokkban, egy másik szuperpozíciós rétegen halad át – a
+csúszóablakos kódolt moduláció is használja @wang2020swsc; ott a szerkezetet a
+kétfelhasználós interferenciacsatorna motiválja (@sec:motivacio).
+
+== Az eljárás lépésről lépésre <sec:lepesrol>
+
+Az eljárást a szabadalomban is leírt @farkas2026szab 4-QAM–16-QAM változaton, a
+halmazparticionáló (SP) bitkiosztással mutatjuk
+be; a kiosztás választásának okait később fejtjük ki (@sec:sajat-kiosztas).
+// Eddigi esetekben (szinkron) a bitek ugyanaból a kódszóból jöttek, míg nálunk a két egymás követőből
+//MLC-hez való különbség, hogy a kódszó egyik fele más szonten van mint a másik, és az egyik felét használjuk a másik kitalálásához
+=== Az adó <sec:ado>
+
+Jelölje $beta(c) = 1 - 2c$ a bit $plus.minus 1$ értékre képezését. A 16-QAM
+konstellációt két 4-QAM réteg szuperpozíciójaként írjuk fel. Egy szimbólum valós
+és képzetes tengelyén egy-egy *durva* ($d$) és egy-egy *finom* ($f$) bit ül:
+$ x = 1 / sqrt(10) [(2 beta(d_R) + beta(f_R)) + j (2 beta(d_I) + beta(f_I))]. $ <eq:16qam-konst>
+A durva bitek kiválasztják a konstelláció negyedét („dobozát”), a finom bitek a
+dobozon belüli pontot.
+
+#figure(
+  table(
+    columns: 5, align: center, stroke: none,
+    table.hline(stroke: 0.6pt),
+    table.header([szint (tengelyenként)], [$-3$], [$-1$], [$1$], [$3$]),
+    table.hline(stroke: 0.4pt),
+    [SP-kiosztás $(d, f)$], [11], [10], [01], [00],
+    [Gray-16-QAM $(d, f)$], [10], [11], [01], [00],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [A tengelyenkénti bitkiosztás. Az SP-kiosztásban minden dobozban azonos
+    a finom bit mintája, a Gray-kiosztásban a szomszédos dobozok tükrözöttek.],
+) <tab:kiosztas>
+
+#figure(
+  {
+    // SP-kiosztás tengelyenként: szint = 2 s(d) + s(f), s(b) = 1 - 2b
+    let u = 0.82cm                     // 1 egység = 1/sqrt(10)
+    let ox = 4.4cm
+    let oy = 4.3cm
+    let P(x, y) = (ox + x * u, oy - y * u)
+    let s(b) = 1 - 2 * b
+    let vonal(p, q, st) = place(top + left, line(start: p, end: q, stroke: st))
+    let cimke(p, body, dx: 0pt, dy: 0pt, meret: 8pt) = place(top + left,
+      dx: p.at(0) - 1.5cm + dx, dy: p.at(1) + dy,
+      box(width: 3cm, align(center, text(size: meret, body))))
+    let nyil(p, irany) = {
+      let (x, y) = p
+      let pts = if irany == "x" { ((x, y - 3pt), (x + 7pt, y), (x, y + 3pt)) }
+                else { ((x - 3pt, y), (x, y - 7pt), (x + 3pt, y)) }
+      place(top + left, polygon(fill: luma(60), ..pts))
+    }
+    box(width: 8.8cm, height: 8.7cm, {
+      // dobozok (durva bitek)
+      for (dR, dI) in ((0, 0), (1, 0), (0, 1), (1, 1)) {
+        let (sx, sy) = (s(dR), s(dI))
+        let x0 = calc.min(sx * 0.4, sx * 3.6)
+        let y1 = calc.max(sy * 0.4, sy * 3.6)
+        let p = P(x0, y1)
+        place(top + left, dx: p.at(0), dy: p.at(1),
+          rect(width: 3.2 * u, height: 3.2 * u, radius: 4pt,
+            fill: rgb("#d6e6f9"), stroke: rgb("#2a78d6") + 0.6pt))
+        cimke(P(sx * 2, sy * 3.6), [$d = #dR#dI$],
+          dy: if sy > 0 { -0.48cm } else { 0.08cm }, meret: 8.5pt)
+      }
+      // tengelyek = a durva bitek döntési határai
+      vonal(P(-4.3, 0), P(4.3, 0), luma(60) + 0.7pt)
+      vonal(P(0, -4.3), P(0, 4.3), luma(60) + 0.7pt)
+      nyil(P(4.3, 0), "x"); nyil(P(0, 4.3), "y")
+      cimke(P(4.3, 0), [Re], dx: 0.45cm, dy: -0.22cm, meret: 9pt)
+      cimke(P(0, 4.3), [Im], dy: -0.62cm, meret: 9pt)
+      for v in (-3, -1, 1, 3) {
+        vonal(P(v, -0.12), P(v, 0.12), luma(60) + 0.6pt)
+      }
+      // pontok + finom bitek
+      for dR in (0, 1) { for fR in (0, 1) { for dI in (0, 1) { for fI in (0, 1) {
+        let p = P(2 * s(dR) + s(fR), 2 * s(dI) + s(fI))
+        place(top + left, dx: p.at(0) - 2.6pt, dy: p.at(1) - 2.6pt,
+          circle(radius: 2.6pt, fill: luma(25)))
+        cimke(p, text(fill: luma(40))[#fR#fI], dy: 0.1cm, meret: 7.5pt)
+      }}}}
+    })
+  },
+  caption: [A halmazparticionáló (SP) kiosztású 16-QAM konstelláció. A durva bitek a negyedet, a finom
+    bitek a negyeden belüli pontot választják ki.],
+) <fig:konstellacio>
+
+A kódszavakat úgy rendeljük a rétegekhez, hogy a $k$-adik kódszó második fele $bold(c)_k^2$ a
+finom, a $(k+1)$-edik kódszó első fele a durva bitekbe kerüljön.
+Egy átfedő blokk $n/4$ szimbólumból áll: mindkét kódszófél $n/2$ bitje szimbólumonként kettesével kerül átvitelre (a $k$-adik kódszóé a finom, a $(k+1)$-ediké a durva rétegben).
+. A lánc két végén nincs átfedő kódszó; itt a ritkább, egységnyi
+energiájú 4-QAM modulációt használjuk @farkas2026szab. A teljes adott sorozat tehát $L + 1$ blokkból áll
+(@fig:idovonal):
+$ bold(x)_0 = q(bold(c)_1^((1))), quad
+  bold(x)_k = cal(M)(bold(c)_(k+1)^((1)), bold(c)_k^((2))) space (1 <= k <= L - 1), quad
+  bold(x)_L = q(bold(c)_L^((2))), $ <eq:lanc>
+ahol $q(dot)$ a 4-QAM leképezés, $cal(M)(d, f)$ pedig a @eq:16qam-konst szerinti
+16-QAM leképezés az első argumentum durva, a második finom bitjeivel.
+
+#figure(
+  {
+    set text(size: 8.5pt)
+    let L = 4
+    let durva = rgb("#d6e6f9")
+    let finom = rgb("#fbdccc")
+    let ritka = luma(232)
+    // a kódszó két fele rés nélkül, közös lekerekített kerettel
+    let cella(t, szin, r) = box(width: 100%, inset: 4pt, radius: r, fill: szin,
+      stroke: luma(160) + 0.5pt, align(center, t))
+    let sorok = ()
+    sorok.push([])
+    for b in range(L + 1) { sorok.push(align(center)[#b. blokk]) }
+    for k in range(1, L + 1) {
+      sorok.push(align(right)[$bold(c)_#k$])
+      for b in range(L + 1) {
+        if b == k - 1 {
+          sorok.push(if k == 1 { cella([4-QAM], ritka, (left: 2pt)) } else { cella([durva], durva, (left: 2pt)) })
+        } else if b == k {
+          sorok.push(if k == L { cella([4-QAM], ritka, (right: 2pt)) } else { cella([finom], finom, (right: 2pt)) })
+        } else { sorok.push([]) }
+      }
+    }
+    sorok.push(align(right)[_adott_])
+    for b in range(L + 1) {
+      sorok.push(align(center, if b == 0 or b == L [4-QAM] else [16-QAM]))
+    }
+    grid(columns: (auto,) + (1fr,) * (L + 1), column-gutter: (6pt, 0pt), row-gutter: 4pt,
+      align: horizon, ..sorok)
+  },
+  caption: [Az átfedéses lánc felépítése $L = 4$ kódszóra. Minden kódszó két blokkon
+    halad át: az elsőben a durva, a másodikban a finom réteget adja; a lánc két végén
+    ritkább (4-QAM) modulációt használunk.],
+) <fig:idovonal>
+=== A vevő <sec:vevo>
+
+A vett blokk $bold(y)_k = bold(x)_k + bold(w)_k$, $bold(w)_k tilde.op cal(C N)(0, N_0)$
+(@fig:szoras). A vevő a lánc elejéről indul; a lépéseket algoritmusba foglaltuk (@alg:sic).
+Az algoritmusban szereplő LLR-képletek levezetése később következik
+// TODO(@sec:llr-finom).
+
+#figure(
+  image("abrak/vett_szoras.png", width: 60%),
+  caption: [A vett szimbólumok. A lánc két végének 4-QAM blokkjai és a belső
+    16-QAM blokkok együtt jelennek meg. Vegyük észre, hogy a negyedek közepe és a 4QAM szimbólumok nem esnek egybe, az eltérés $2/sqrt(5)$],
+) <fig:szoras>
+#figure(
+  kind: "algoritmus", supplement: [algoritmus],
+  block(width: 100%, inset: 10pt, radius: 3pt, stroke: luma(150) + 0.6pt, {
+    set align(left)
+    set text(size: 10pt)
+    set enum(numbering: "1.")
+    [*Bemenet:* $bold(y)_0, dots, bold(y)_L$, $N_0$. #h(1fr) *Kimenet:* $hat(bold(c))_1, dots, hat(bold(c))_L$]
+    v(2pt)
+    enum(
+      [$k = 1$: az első fél LLR-jei a $bold(y)_0$ 4-QAM blokkból.],
+      [A $k$-adik kódszó második felének LLR-jei @eq:llr-finom a $bold(y)_k$ blokk *finom*
+        bitjeiből, ismeretlen durva réteg mellett,  szerint;
+        $k = L$ esetén a $bold(y)_L$ 4-QAM blokkból.],
+      //@eq:llr-finom ezeket majd később használom csak az arész még nincs kész 
+      [Dekódolás: $hat(bold(c))_k$; ha $k = L$, vége.],
+      [Újrakódolás és rekonstrukció: a finom réteg becsült hozzájárulása
+        $hat(bold(x))_k^"finom" = (beta(hat(f)_R) + j beta(hat(f)_I)) \/ sqrt(10)$.],
+      [Tisztítás: $tilde(bold(y))_k = bold(y)_k - hat(bold(x))_k^"finom"$.
+        Helyes becslés esetén $tilde(bold(y))_k$ egy $2 \/ sqrt(10)$ amplitúdójú
+        4-QAM jel.],
+      [A $(k+1)$-edik kódszó első felének LLR-jei  @eq:llr-durva a tisztított blokkból
+        a  szerint; $k <- k + 1$, vissza a 2. lépésre.],
+        //
+    )
+    v(2pt)
+    text(size: 9pt, fill: luma(70))[A megvalósításban a tisztított blokkot
+      $sqrt(5) \/ 2$-vel egységnyi energiájú 4-QAM-má skálázzuk; ekkor a zajvariancia
+      $5 N_0 \/ 4$-re nő, az LLR változatlan.]
+  }),
+  caption: [Szukcesszív dekódolás az átfedéses láncon.],
+) <alg:sic>
+
+#figure(
+  grid(columns: 3, image("abrak/sic_vett.png"), image("abrak/sic_rekonstr.png"), image("abrak/sic_tisztitott.png")),
+  caption:[Egy SIC-lépés a konstellációs síkon: a vett 16-QAM blokk (balra), a
+  rekonstruált finom réteg kivonása, amely minden pontot a doboza középpontjába tol
+  (középen), és a tisztított blokk, amelyben a durva bitek egy ritkább, 4-QAM jellegű
+  konstellációban jelennek meg (jobbra).],
+) <fig:sic-lepes>
+
+== Tervezési döntések és indoklásuk <sec:dontesek>
+
+=== A BPSK–QPSK változat korlátja <sec:bpsk-qpsk>
+
+A szabadalmi bejelentés alappéldájában @farkas2026szab, a BPSK–QPSK átfedéses
+modulációban a két egymást követő kódszó bitjei a
+QPSK-szimbólum két egymásra merőleges tengelyére kerülnek. Mivel az AWGN-zaj valós
+és képzetes része független, a vett jel valós része csak az egyik, képzetes része
+csak a másik kódszó bitjéről hordoz információt. A két kódszó tehát valójában két
+egymástól független csatornán halad. Ebből következik, hogy az egyik kódszó
+ismerete – vagyis a SIC tisztító lépése – nem javít a másik kódszó bitjeinek
+megbízhatóságán, és hibás tisztítás esetén sem ront rajta. A belső kódszavak így
+pontosan ugyanolyan feltételek mellett dekódolódnak, mint a szinkron QPSK-átvitelben.
+A mért előny elméletileg kizárólag a lánc két végének ritkább, nagyobb bitenergiájú
+modulációjából eredhet.
+
+A 4-QAM–16-QAM változatban ezzel szemben a durva és a finom bit ugyanazon a
+tengelyen osztozik (ld. @eq:16qam-konst), így a tisztítás valódi információt ad.
+Hogy ebből mekkora nyereség lesz, az a bitkiosztáson múlik (@sec:sajat-kiosztas).
+
+/// sebességet lehet ezzel állítani anékül, hogy a konstellációt vagy a kódolót dekódolót változtatnánk
+=== A halmazparticionáló bitkiosztás <sec:sajat-kiosztas>  
+
+A 16-QAM négy címkebitjét sokféleképpen oszthatjuk el a két kódszó között. Két
+kiosztást hasonlítunk össze (@tab:kiosztas); mindkettőben tengelyenként a durva bit az
+MSB, a finom bit az LSB. Az egyik a szokásos Gray-kiosztás, a másik Ungerboeck
+halmazparticionáló (SP) címkézése @ungerboeck1982. Ebben tengelyenként a finom bit a
+szinteket a ${-3, 1}$ és ${-1, 3}$ részhalmazokra bontja, amelyeken belül a pontok
+távolsága a legkisebb szinttávolság kétszerese, a durva bit pedig a részhalmazon belül
+választ. A két tengelyt együtt nézve a két finom bit a 16-QAM-ot négy, kétszeres
+távolságú 4-QAM részhalmazra bontja; ugyanezekhez a részhalmazokhoz jut Ungerboeck
+kétdimenziós partícióláncának második szintje is.
+
+A két kiosztás csak abban különbözik, hogyan függ a szint a finom bittől. Az
+SP-kiosztásnál a szint $2 beta(d) + beta(f)$, vagyis a finom bit a durva bittől
+függetlenül mindig ugyanabba az irányba tolja el a pontot; a Gray-kiosztásnál
+$beta(d) (2 + beta(f))$, így a negatív félen az eltolás iránya megfordul (a
+szomszédos dobozok tükrözöttek). Mindkettőnek van előnye, de a lánc két különböző
+pontján.
+
+*A Gray-kiosztás előnye: egy szimbólumhiba egy bithiba.* A Gray-kiosztásban a
+szomszédos szintek ($-3 <-> -1 <-> 1 <-> 3$) címkéi pontosan egy bitben térnek el.
+Nagy jel-zaj viszony esetében, a szimbólumhibák szinte mindig a legközelebbi
+szomszédba esnek, így egy szimbólumhiba egyetlen bithibát okoz. Az SP-kiosztásnál
+a $-1 <-> 1$ átmenet (a durva döntési határ) a $10 <-> 01$ címkék között vezet, vagyis
+*két* bithibát okoz; tengelyenként átlagosan $(1 + 2 + 1) \/ 3 = 4 \/ 3$ bithiba esik
+egy szomszédos szimbólumhibára. A Gray-kiosztás ezért ott jobb, ahol a teljes
+16-QAM szimbólumról kell dönteni – a SIC-láncban a tisztítás előtti, „zavart”
+félben.
+
+*Az SP-kiosztás előnye: a tisztítás után állandó a távolság.* A finom réteg
+ismeretében a durva bitről két pont között kell dönteni. Az SP-kiosztásnál ez
+mindig a $plus.minus 2$ szintpár, a Gray-kiosztásnál viszont a finom bittől
+függően a $plus.minus 1$ (belső) vagy a $plus.minus 3$ (külső) pár. A döntési határtól
+mért távolság tehát
+$ "SP:" quad 2, quad quad "Gray:" quad 1 "vagy" 3 quad (1 \/ sqrt(10) "egységben"). $ <eq:tavolsag-tisztitas>
+Az átlag mindkét esetben $2$, a hibavalószínűség azonban nem a távolság, hanem a
+konvex $Q(dot)$ függvény átlaga. $sigma^2 = N_0 \/ 2$ zajvariancia mellett
+$ P_d^"SP" = Q(2 / (sqrt(10) sigma)), quad
+  P_d^"Gray" = 1 / 2 [Q(1 / (sqrt(10) sigma)) + Q(3 / (sqrt(10) sigma))]
+  >= P_d^"SP", $ <eq:jensen-q>
+ahol az egyenlőtlenség a Jensen-egyenlőtlenségből következik. Nagy jel-zaj viszony
+mellett a Gray-kiosztás hibáját a belső pontok tagja uralja, az SP-kiosztás tehát a tisztított félben jobb.
+
+=== A tisztítás: kemény és lágy <sec:tisztitas>
+
+A szukcesszív vevő kulcslépése a tisztítás: a $k$-adik kódszó dekódolása után a finom
+réteg hozzájárulását eltávolítjuk, hogy a $(k+1)$-edik kódszó durva bitjei
+megbízhatóbbak legyenek. Két irányban módosíthatjuk az alapeljárást: a bitkiosztással
+(Gray vagy SP, @tab:kiosztas) és a tisztítás módjával (kemény vagy lágy). Az
+alábbiakban megmutatjuk, mit jelent a kettő, és milyen előnyökkel, hátrányokkal jár.
+
+*A finom bitek LLR-je.* <sec:llr-finom> A tisztítás előtt a finom bitekről úgy kell lágy becslést
+adni, hogy a durva réteg még ismeretlen. Tengelyenként
+$u = (2 beta(d) + beta(f)) \/ sqrt(10) + w_u$, $w_u tilde.op cal(N)(0, N_0 \/ 2)$, és a
+durva bitet a két lehetséges értékére marginalizálva az SP-kiosztásnál
+$ L(f | u) = ln (e^(-(u - 3\/sqrt(10))^2 \/ N_0) + e^(-(u + 1\/sqrt(10))^2 \/ N_0))
+                / (e^(-(u - 1\/sqrt(10))^2 \/ N_0) + e^(-(u + 3\/sqrt(10))^2 \/ N_0)). $ <eq:llr-finom>
+(A Gray-kiosztásnál a számlálóban a $plus.minus 3$, a nevezőben a $plus.minus 1$ szintek
+állnak.)
+
+*Kemény tisztítás, SP-kiosztás.* A dekódolt kódszót újrakódoljuk, és a becsült
+finom réteget kivonjuk:
+$ tilde(u) = u - beta(hat(f)) / sqrt(10), quad
+  L(d | tilde(u)) = 8 / (sqrt(10) N_0) tilde(u). $ <eq:llr-durva>
+Helyes $hat(f)$ esetén a durva bit egy kétszeres léptékű 4-QAM-ban jelenik meg, ez az
+SP-kiosztás távolságnyeresége (@sec:tisztitas). Hibás $hat(f)$ esetén viszont a
+pont a durva döntési határra kerülhet, és a durva bitről nem marad információ, ez a
+hibaterjedés forrása, amelyet a @sec:hibaterjedes részletez.
+
+*Kemény tisztítás, Gray-kiosztás.* A Gray-kiosztásnál a szint
+$beta(d) (2 + beta(f)) \/ sqrt(10)$, vagyis a finom réteg hozzájárulása a durva
+bittől is függ; kivonni ezért nem lehet. A finom bit ismerete viszont megmondja a
+durva bithez tartozó pont *távolságát* a döntési határtól, így a tisztítás itt
+feltételes demodulációt jelent:
+$ L(d | u, hat(f)) = (4 (2 + beta(hat(f)))) / (sqrt(10) N_0) u. $ <eq:llr-gray>
+Mivel $2 + beta(hat(f)) > 0$, az LLR előjele mindig $u$ előjele: *a durva bit
+döntési határa nem függ a finom bittől*. Egy hibás $hat(f)$ így csak az LLR
+nagyságát rontja el (a belső pontokat háromszor túl biztosnak, a külsőket háromszor
+túl bizonytalannak mondja), a döntést nem. A Gray-kiosztás tehát eleve robusztus a
+hibaterjedéssel szemben – cserébe a legrosszabb (belső) pontok távolsága sem nő, így
+a nyeresége is kicsi.
+
+*Lágy tisztítás.* A kemény tisztítás akkor is teljes súllyal vonja ki a becsült
+finom réteget, ha a dekóder bizonytalan volt. A lágy tisztítás @wang1999 ehelyett
+nem módosítja a vett jelet: a dekóder finom bitekre adott információját a priori
+valószínűségként használja fel a következő kódszó durva bitjeinek demodulációjában.
+A csúszóablakos kódolt modulációnál is javasolták, hogy a kioltás kemény döntések
+helyett a dekóder által adott LLR-ekre épüljön @kim2016swcm.
+Tengelyenként
+$ L(d | u) = ln (sum_(f) P(f) thin p(u | d = 0, f)) / (sum_(f) P(f) thin p(u | d = 1, f)), $ <eq:lagy-prior>
+ahol $P(f)$ a finom bit a priori valószínűsége, amelyet a dekóder *extrinsic*
+LLR-jéből ($Lambda_f^"e"$) kapunk.
+
+A dekóder egy finom bitre a csatorna-LLR-t ($L_"cs" (f)$, @eq:llr-finom) kapja
+bemenetként, kimenetként pedig az a posteriori LLR-t ($Lambda_f$) adja. Jelölje $u$
+a finom bit saját megfigyelését, $r$ pedig a dekóder által felhasznált összes többi
+megfigyelést. Rögzített $f$ mellett $u$ független $r$-től, így a Bayes-tétel szerint
+$P(f | u, r) prop p(u | f) thin P(f | r)$, és az a posteriori LLR két tagra bomlik:
+$ Lambda_f = ln P(f = 0 | u, r) / P(f = 1 | u, r)
+  = underbrace(ln p(u | f = 0) / p(u | f = 1), L_"cs" (f))
+  + underbrace(ln P(f = 0 | r) / P(f = 1 | r), Lambda_f^"e"). $ <eq:extrinsic>
+Az extrinsic LLR tehát a finom bitről a saját megfigyelése nélkül rendelkezésre álló
+információ; BP-dekódolásnál ez a paritásellenőrzésekből érkező üzenetek összege.
+A következő kódszó demodulátora ugyanazt a vett blokkot használja fel újra, így ha a
+teljes $Lambda_f$-et adnánk át priorként, a vett jel finom bitre vonatkozó
+információját kétszer vennénk figyelembe, és a kapott LLR túl magabiztos lenne.
+Ezért csak az extrinsic részt, $Lambda_f^"e" = Lambda_f - L_"cs" (f)$-et használjuk.
+A priori valószínűséggé az LLR definíciójából alakítjuk:
+$Lambda_f^"e" = ln P(f = 0) \/ P(f = 1)$ és $P(f = 0) + P(f = 1) = 1$ miatt
+$ P(f = 0) = e^(Lambda_f^"e") / (1 + e^(Lambda_f^"e")) = 1 / (1 + e^(-Lambda_f^"e")),
+  quad P(f = 1) = 1 / (1 + e^(Lambda_f^"e")). $ <eq:prior-valoszinuseg>
+
+Biztos döntésnél ($|Lambda_f^"e"| >> 1$) ez a kemény tisztítással @eq:lagy-prior
+egyezik, bizonytalan bitnél ($Lambda_f^"e" approx 0$) pedig a tisztítás nélküli,
+marginalizált LLR-re esik vissza – így egy bizonytalan finom bit nem tolja a döntési
+határra a durva bitet. A vevőben nincs szükség újrakódolásra, a dekódernek viszont a
+teljes kódszóra lágy kimenetet kell adnia. Hibaterjedés továbbra is előfordulhat, ha
+a BP-dekóder sikertelen dekódolásnál magabiztosan hibás LLR-eket ad.
+
+*Gray és lágy tisztítás együtt.* Az @eq:lagy-prior bármely kiosztásra érvényes,
+így a Gray-kiosztással is használható. Nagy javulás azonban nem várható tőle, mert a
+Gray-kiosztás döntési határa eleve független a finom bittől – a lágy tisztítás ott
+csak az LLR-ek nagyságát pontosítja.
+
+*Összefoglalva:* az SP-kiosztás nagyobb nyereséget ígér, de kemény tisztítással
+érzékeny a hibaterjedésre; a lágy tisztítás pontosan ezt a gyengeségét kezeli. A
+Gray-kiosztás robusztus, de kevés nyereséggel. A gyakorlatban ezért az SP-kiosztás
+és a lágy tisztítás együttese a legígéretesebb.
+// TODO: a szimulációs eredményekkel (5. fejezet) összevetni.
+
+*A kapacitás szintjén nincs különbség.* A kölcsönös információ láncszabálya bármely
+valószínűségi változókra érvényes, így egy tengely durva és finom bitjére is:
+$ I(X; Y) = I(D, F; Y) = I(F; Y) + I(D; Y | F). $ <eq:lanc-16qam>
+A bal oldal a konstelláció kölcsönös információja, amely nem függ a címkézéstől, és
+minden olyan rendszer számára elvi felső korlát, amely ezt a konstellációt
+használja – szinkron és aszinkron rendszerre egyaránt. A különbség abban van, hogy
+melyik rendszer tudja ezt a határt elérni. Az átfedéses láncban a két réteg
+különböző kódszavakhoz tartozik, és a szukcesszív vevő sorrendben dekódolja őket,
+így a második tag valóban feltételes alakban, az első réteg ismeretében valósul meg:
+ideális kódokkal a lánc a kiosztástól függetlenül eléri $I(X; Y)$-t. A szinkron
+rendszer bitenkénti dekódolással csak a bitek feltétel nélküli kölcsönös
+információinak összegét, $sum_i I(B_i; Y) <= I(X; Y)$-t éri el; Gray-kiosztással ez a
+határt szinte eléri (@tab:mi; 2 bit/szimbólum rátánál a különbség 0,16 dB). Mindez összhangban van azzal,
+hogy az aszinkron többszörös hozzáférésű csatorna kapacitástartománya korlátos
+késleltetés mellett megegyezik a szinkronéval @cover1981 @farkas2014: az
+aszinkronitás a kapacitáson nem változtat.
+
+A két kiosztás között csak az információ megoszlásában van különbség (@tab:mi): a
+SP-kiosztás a finom (zavart) szerepben kevesebb, a durva (tisztított) szerepben
+több információt hordoz, mint a Gray-kiosztás.
+
+*Különbség a többszintű kódolástól.* A többszintű kódolásban (MLC) @imai1977 egy
+szimbólum két szintje két különböző komponenskódhoz tartozik, ezért a rátákat
+szintenként külön kell megválasztani @wachsmann1999; a @tab:mi szerint 9 dB-en a
+SP-kiosztásnál a finom szint $0,98$, a durva $1,96$ bit/szimbólum rátát enged.
+Az átfedéses láncban ezzel szemben minden kódszó első fele a durva, második fele a
+finom szinten halad át, így minden kódszó egyenlő arányban látja mindkét szintet.
+Ideális kódra a feltétel ekkor egyetlen közös kódsebességre vonatkozik:
+$ R <= (I(F; Y) + I(D; Y | F)) / 4 = I(X; Y) / 4, $ <eq:kozos-rata>
+ahol $F$ és $D$ egy szimbólum két finom, illetve két durva bitje, a kölcsönös
+információk pedig bit/szimbólumban értendők. Az átfedéses lánc tehát egyetlen
+kóddal, szintenkénti rátatervezés nélkül valósítja meg a többlépcsős dekódolást.
+Ugyanerre jut Wang és szerzőtársaik összevetése is, amely a csúszóablakos kódolt
+modulációt az MLC-vel és a BICM-mel hasonlítja össze, és rámutat arra is, hogy a
+lépcsőzetes szerkezetben a kódszó kétszer olyan hosszú, mint az MLC
+komponenskódjai, ami véges blokkhossznál előnyös lehet @wang2020swsc. A különbség lényege azonban nem a ráta, hanem a szerkezet: a többszintű
+kódolásban – és annak MAC-értelmezésében @abotabl2014 – a szintek ugyanabban az
+időrésben, szinkronban haladnak át, az átfedéses láncban viszont egymáshoz képest
+eltolt kódszavakhoz tartoznak. A lánc így egy aszinkron MAC-nak felel meg, ezért
+merül fel, hogy a vezérelt aszinkronitás hibaexponens-előnye (@sec:mac) itt is
+megjelenhet.
+#figure(
+  table(
+    columns: 4, align: (left, center, center, center), stroke: none,
+    table.hline(stroke: 0.6pt),
+    table.header([], [$E_s \/ N_0 = 6$ dB], [$9$ dB], [$12$ dB]),
+    table.hline(stroke: 0.4pt),
+    [SP: $I(F;Y) + I(D;Y|F)$], [0,48 + 1,72], [0,97 + 1,95], [1,58 + 2,00],
+    [Gray: $I(F;Y) + I(D;Y|F)$], [0,80 + 1,40], [1,28 + 1,64], [1,72 + 1,86],
+    [összeg, $I(X;Y)$ (mindkettő)], [2,20], [2,93], [3,58],
+    [szinkron Gray, bitenként], [2,18], [2,93], [3,58],
+    table.hline(stroke: 0.6pt),
+  ),
+  caption: [Szimbólumonkénti kölcsönös információ (bit/szimbólum) a két szerepben,
+    16-QAM, egyenletes bemenet. Monte Carlo-becslés ($2 dot 10^6$ minta); az összeg
+    a kiosztástól független, a kerekítés miatt a tagok összege legfeljebb
+    $0,01$-gyel eltérhet.],
+) <tab:mi>
+
+*A nyereség a hibaexponensben jelenik meg.* Az aszinkron szerkezet előnye nem a
+kapacitásban, hanem a hibaexponensben (@eq:hibaexponens) jelentkezik @csiszar2021.
+Minden rendszer exponense a kapacitásnál nullára csökken, $E(C) = 0$ @gallager1965;
+mivel a kapacitás a két rendszerben azonos, a vízesés-tartományban – ahol a kód
+rátája közel van az adott jel-zaj viszonyhoz tartozó kapacitáshoz – lényeges
+különbség nem várható. Rögzített kódrátánál a jel-zaj viszony növelésével a kapacitás
+nő, a ráta egyre messzebb kerül alatta, és itt az exponensek már eltérhetnek. Nagy
+jel-zaj viszony mellett a hibavalószínűséget a minimális távolság határozza meg, így
+a nyereség konkrét formája a tisztított bitek nagyobb távolsága (@sec:tisztitas). A
+nyereség tehát nem a kód küszöbének eltolódásában, hanem a küszöb feletti
+tartományban, a bithibaarány gyorsabb csökkenésében jelentkezik. Csiszár, Farkas és
+Kói eredménye együttes dekódolásra vonatkozik; hogy a szukcesszív vevővel mennyi
+valósul meg belőle, azt szimulációval vizsgáljuk.
+
+=== Kétirányú dekódolás <sec:ketiranyu>
+
+A szabadalmi bejelentés szerint @farkas2026szab a dekódolás a lánc végéről is indítható. Hátulról haladva
+azonban a szerepek felcserélődnek: az utolsó kódszó dekódolása után a *durva* réteg
+válik ismertté, és a tisztítás a finom bitek távolságát nem növeli. Ezért a
+kétirányú változatban az adó a lánc második felét tükrözve állítja elő – ott a
+következő kódszó adja a finom, az aktuális a durva réteget –, így a lánc mindkét
+végéről ugyanolyan feltételekkel indulhat a szukcesszív dekódolás, és a két irány a
+lánc közepén találkozik.
+// TODO: pontosítsd a találkozási pontot a megvalósítás szerint (melyik blokkban
+// fut össze a két irány, és ott melyik kódszót dekódoljátok előbb).
+
+A kétirányú dekódolás két előnnyel jár. A leghosszabb dekódolási lánc $L$-ről
+körülbelül $L \/ 2$-re rövidül, így egy hiba legfeljebb feleannyi kódszón tud
+továbbterjedni, és a két irány párhuzamosan futtatható, ami a dekódolási késleltetést
+is felezi. A rátaveszteség nem változik, mert továbbra is két ritkább modulációjú
+láncvég van.
+
+=== Az eltolás mértéke <sec:eltolas>
+
+Az aszinkron modulációs rendszerekben az egymást átlapoló kódszavak és jelek
+interferenciájának kezelése kulcsfontosságú a vételi teljesítmény szempontjából. A
+matematikai elmélet szerint az egymást követő kódszavak közötti *$1\/2$-es (50%-os)
+időbeli eltolás* biztosítja a legkedvezőbb feltételeket a szekvenciális
+interferencia-kivonáshoz (SIC) és a dekódoláshoz, így ebben a pontban érhető el a
+legalacsonyabb bithibaarány (BER).
+
+Ha az eltolás mértéke eltér az $1\/2$-től (például $Delta T < T\/2$), akkor az
+átfedések mértéke egyenlőtlenné válik. Ilyenkor keletkezik olyan kis mértékű
+„rálógás” (ahol az átfedés $1\/2$-nél lényegesen kisebb), amely során nem áll
+rendelkezésre elegendő közös információ az interferencia hatékony becsléséhez és
+kivonásához. Ez lerontja a szekvenciális dekódolás hatékonyságát, és növeli a
+hibaterjedés kockázatát.
+
+Az $1\/2$-es eltolás hatékonyságának főbb matematikai és rendszerszintű indokai:
++ *Szimmetrikus áthallási eloszlás:* $1\/2$-es eltolás esetén az $i$-edik kódszó
+  pontosan egyenlő arányban (50–50%-ban) fed át az őt megelőző $(i-1)$-edik és az őt
+  követő $(i+1)$-edik kódszóval. Ezzel szemben a nem $1\/2$-es eltolás egyenlőtlen
+  áthallást eredményez, ahol a túl kicsi átfedésű szakaszok kihasználatlanul hagyják
+  a kódszavak közötti korrelációt.
++ *Optimális LLR-információmegosztás:* A szekvenciális iteratív dekódolás során a már
+  sikeresen dekódolt kódszavak szimbólumai visszavonásra kerülnek a még nem dekódolt
+  jelekből. Az $1\/2$-es eltolás maximalizálja az egymásnak átadott feltételes
+  információt (log-likelihood ratio, LLR), míg az $1\/2$-nél kisebb átfedésű
+  rálógások esetén az LLR-kérdéses információveszteség miatt megnő a hibaterjedési
+  katasztrófa esélye.
++ *Szimulációs igazolás:* A szimulációs BER-görbék $X = 1\/2$ (vagy `oneBitPart`
+  $approx$ 0,5) értéknél határozott minimumot (optimális pontot) mutatnak ideális
+  példakódokra, ami igazolja az elméleti modellt.
+
+Az eltolás hatását, a kódszavak ($C_1, C_2, C_3$) elrendezését és az aszimmetrikus
+rálógásokat a @fig:eltolas-elmelet szemlélteti.
+
+#let eltolas-panel(c2, dashes, felso, also, also-x) = {
+  // c2: C2 kezdőpontja; dashes: ((x, y1, y2), ...); felso/also: zárójelek feliratai
+  set par(first-line-indent: 0pt)
+  let u = 0.48cm
+  let P(x, y) = (x * u, (3.3 - y) * u)
+  let vonal(p, q, st) = place(top + left, line(start: p, end: q, stroke: st))
+  let doboz(x0, y0, nev, kitolt, keret) = {
+    let p = P(x0, y0 + 0.8)
+    place(top + left, dx: p.at(0), dy: p.at(1),
+      rect(width: 5 * u, height: 0.8 * u, inset: 0pt, fill: kitolt, stroke: keret + 0.9pt,
+        align(center + horizon, text(size: 8pt, nev))))
+  }
+  let cimke(x, y, body) = {
+    let p = P(x, y)
+    place(top + left, dx: p.at(0) - 1cm, dy: p.at(1) - 0.25cm,
+      box(width: 2cm, height: 0.5cm, align(center + horizon, text(size: 8pt, body))))
+  }
+  // zárójel: vízszintes vonal, a dobozok felé néző végekkel
+  let zarojel(x1, x2, y, irany) = {
+    vonal(P(x1, y), P(x2, y), 0.8pt)
+    vonal(P(x1, y), P(x1, y - irany * 0.2), 0.8pt)
+    vonal(P(x2, y), P(x2, y - irany * 0.2), 0.8pt)
+    vonal(P((x1 + x2) / 2, y), P((x1 + x2) / 2, y + irany * 0.15), 0.8pt)
+  }
+  let szagg = (paint: gray, thickness: 0.8pt, dash: "dashed")
+  box(width: 10 * u, height: 4.6 * u, {
+    doboz(0, 0, $C_1$, rgb("#ccdcf5"), rgb("#1f4fa0"))
+    doboz(5, 0, $C_3$, rgb("#ccf0cc"), rgb("#1f7a1f"))
+    doboz(c2, 1.2, $C_2$, rgb("#f5cccc"), rgb("#a01f1f"))
+    for (x, y1, y2) in dashes { vonal(P(x, y1), P(x, y2), szagg) }
+    zarojel(5, c2 + 5, 2.4, 1)
+    cimke((5 + c2 + 5) / 2, 2.95, felso)
+    zarojel(also-x, 5, -0.2, -1)
+    cimke((also-x + 5) / 2, -0.75, also)
+  })
+}
+
+#figure(
+  grid(
+    columns: 3, column-gutter: 1fr, row-gutter: 0.5em, align: center,
+    eltolas-panel(2.5, ((2.5, 0.8, 1.2), (5, 0, 2.3), (7.5, 0.8, 1.2)),
+      $T/2$, $T/2$, 2.5),
+    eltolas-panel(3.5, ((5, 0, 2.3), (8.5, 0.8, 2.3), (3.5, 0.8, 1.2)),
+      $> T/2$, $< T/2$, 3.5),
+    eltolas-panel(1.5, ((5, 0, 2.3), (1.5, 0.8, 2.3), (6.5, 0.8, 1.2)),
+      $< T/2$, $> T/2$, 1.5),
+    text(size: 9pt)[(a) Ideális $1\/2$-es eltolás.],
+    text(size: 9pt)[(b) Eltolás jobbra.],
+    text(size: 9pt)[(c) Eltolás balra.],
+  ),
+  caption: [A $C_1, C_2, C_3$ kódszavak elrendezése és rálógási viszonyai az ideális és
+    aszimmetrikus esetekben. Az a) ábrán $C_1$-et és $C_2$-t ugyanolyan hatékonyan
+    tudjuk dekódolni. A b) ábrán $C_1$-et megbízhatóbban tudjuk dekódolni, de ha ez
+    sikerül, $C_2$-t kevésbé megbízhatóan. A c) ábrán $C_1$-et kevésbé megbízhatóan
+    tudjuk dekódolni, de ha ez sikerül, $C_2$-t megbízhatóbban.],
+) <fig:eltolas-elmelet>
+
+Az elméleti megfontolásokat a szimulációs mérések is egyértelműen alátámasztják
+(@fig:eltolas-szimulacio): a bithibaarány az eltolás függvényében szimmetrikus V-alakú görbét követ, amelynek globális minimuma a skála közepén (a
+$T\/2$-es eltolásnak megfelelő felosztási pontban) található.
+
+#figure(
+  image("Vgorbe.png", width: 85%),
+  caption: [A szimulált BER-értékek alakulása a kódszó-eltolás függvényében. A V-alakú
+    görbe jól mutatja, hogy a legalacsonyabb hibaarány a skála közepén, az $1\/2$-es
+    eltolásnál érhető el.],
+) <fig:eltolas-szimulacio>
+
+== Hibaterjedés és az eljárás ára <sec:korlatok>
+
+=== Hibaterjedés <sec:hibaterjedes>
+
+A szukcesszív vevő azt feltételezi, hogy a tisztításhoz felhasznált kódszó helyes.
+Ha a $k$-adik kódszó dekódolása hibás, a tisztított jel tengelyenként
+$ tilde(u) = (2 beta(d) + beta(f) - beta(hat(f))) / sqrt(10) + w_u. $ <eq:hibas-tisztitas>
+Ahol $hat(f) = f$, a tisztítás helyes. Ahol $hat(f) != f$, a kivont érték előjele
+ellentétes, azaz $beta(f) - beta(hat(f)) = 2 beta(f)$, és
+$ tilde(u) = (2 beta(d) + 2 beta(f)) / sqrt(10) + w_u. $ <eq:hibas-tisztitas2>
+Ha a finom bit előjele megegyezik a durváéval, a pont a döntési határtól távolabb
+kerül ($plus.minus 4 \/ sqrt(10)$), és a döntés helyes marad; ha ellentétes, a pont
+pontosan a döntési határra ($0$-ra) esik, és a durva bitről nem marad információ.
+Mivel a két eset egyformán valószínű, egy hibásan becsült finom bit átlagosan minden
+második esetben „törli” a következő kódszó megfelelő durva bitjét (kemény döntésnél
+ez átlagosan 25% bithibának felel meg). Egy sikertelen LDPC-dekódolás nem néhány,
+hanem a kódszó jelentős részét érintő bithibát okoz, így a következő kódszó első fele
+nagyrészt törlődik, annak dekódolása is nagy valószínűséggel sikertelen lesz, és a
+hiba dominóként végigfuthat a láncon.
+
+A hibaterjedést a lágy tisztítás mérsékli (@sec:tisztitas): a bizonytalan finom
+biteket nem vonja ki, így ezek nem okoznak törlést; magabiztosan hibás
+dekóderkimenet esetén azonban a hiba így is továbbterjedhet. A BPSK–QPSK változatban
+ilyen hibaterjedés nincs, mert ott a tisztítás nem befolyásolja az LLR-t
+(@sec:bpsk-qpsk).
+
+=== Az eljárás ára <sec:ar>
+
+Az átfedéses lánc nyereségéért elsősorban adatsebességgel fizetünk. A számítási
+bonyolultság nagyságrendileg nem nő, a dekódolás viszont sorossá válik.
+
+*Sebességveszteség.* $L$ kódszó $L + 1$ blokkban halad át (@fig:idovonal): a belső
+blokkokban két kódszó osztozik a 16-QAM szimbólumokon, a két szélső 4-QAM blokkban
+viszont csak egy-egy kódszófél halad. Mivel minden blokk $n \/ 4$ szimbólumból áll,
+$R$ kódsebesség mellett a spektrális hatékonyság
+$ eta_"átf" = 4 R dot L / (L + 1) quad "bit/szimbólum", $ <eq:eta-atf>
+szemben a szinkron 16-QAM $eta_"szink" = 4 R$ értékével. A relatív veszteség
+$1 \/ (L + 1)$, ami a @eq:ebn0 szerint azonos $E_s \/ N_0$ mellett
+$10 log_10 ((L + 1) \/ L)$ dB-lel nagyobb $E_b \/ N_0$-t jelent: $L = 10$ esetén
+9,1% (0,41 dB), $L = 20$ esetén 4,8% (0,21 dB) (@fig:sebesseg). A veszteség
+csak a lánchossztól függ, a kódtól és a kódsebességtől nem; a vizsgált
+LTE-turbókódokra $L = 20$ mellett a @fig:sebesseg-matrix mutatja.
+
+#figure(
+  image("abra/Sebessegveszteseg_Elmeleti_L_fuggvenyeben.png", width: 100%),
+  caption: [A relatív sebességveszteség (balra) és a spektrális hatékonyság (jobbra)
+    a lánchossz függvényében, $R = 40 \/ 132$ kódsebességű turbókóddal. Az átfedéses
+    lánc hatékonysága $L -> infinity$ esetén a szinkron 16-QAM értékéhez tart.],
+) <fig:sebesseg>
+
+#figure(
+  image("abra/Sebessegveszteseg_Matrixonkent_Bar.png", width: 90%),
+  caption: [Szinkron és átfedéses 16-QAM átvitel információs sebessége a vizsgált
+    LTE-turbókódokra ($N$: kódszóhossz, $K$: információs bitek száma), $L = 20$.],
+) <fig:sebesseg-matrix>
+
+A veszteség nem vész el haszontalanul: a szélső blokkok kétszeres bitenergiájú
+4-QAM modulációja adja a lánc megbízható kezdőpontját, ahonnan a szukcesszív
+dekódolás elindul @farkas2026szab. A csúszóablakos szuperpozíciós kódolásban ezeket a
+blokkokat ismert üzenet tölti ki, vagy a veszteség csökkentésére kisebb sebességű
+adat @wang2020swsc. 
+
+*A lánchossz megválasztása.* Hosszabb láncnál kisebb a veszteség, de nő a
+hibaterjedés kockázata (@sec:hibaterjedes): a lánc első hibája minden utána következő
+kódszót veszélyeztet, így a lánc meghibásodásának valószínűsége nagyjából $L$-lel
+arányos @wang2020swsc. A lánchossz ezért kompromisszum, és a legjobb érték a jel-zaj
+viszonytól függ @farkas2026szab. A kétirányú dekódolás (@sec:ketiranyu) a leghosszabb
+dekódolási láncot felezi, a veszteségen azonban nem változtat.
+
+*Bonyolultság.* Kódszavanként a vevő ugyanazt a demodulátort és dekódert futtatja,
+mint a szinkron 16-QAM vevő: a bitenkénti LLR mindkét esetben a konstellációs pontokra
+vett marginalizálás. Kemény tisztításnál ehhez jön a dekódolt kódszó újrakódolása,
+modulálása és kivonása; ezek a kódszóhosszban lineáris lépések, az iteratív dekódolás
+mellett elhanyagolhatók. Lágy tisztításnál újrakódolás sincs, a dekódernek viszont lágy
+kimenetet kell adnia, amelyet a BP- és a turbódekóder eleve előállít. A bonyolultság
+tehát legfeljebb kis állandó szorzóval nő.
+
+A lényeges különbség az ütemezésben van. A szinkron keret kódszavai egymástól
+függetlenül, párhuzamosan dekódolhatók, a láncban viszont a $k$-adik kódszó csak a
+$(k - 1)$-edik után; a kétirányú változat két párhuzamos ágat enged. Folyamatos
+vételnél ez kis késleltetést jelent: a $k$-adik kódszó a $k$-adik blokk megérkezése
+után dekódolható, így a késleltetés egy blokkal nő @wang2020swsc, a dekódernek pedig
+blokkonként egy kódszót kell feldolgoznia.
+
+// =====================================================================
+
+= A szimulációs környezet <ch:szimulacio>
+
+// Helykitöltő a még hiányzó adatokhoz (a végleges változatból törölhető)
+#let hk(t) = box(fill: rgb("#fff3cd"), stroke: rgb("#e0b000") + 0.5pt,
+  inset: (x: 3pt, y: 1pt), outset: (y: 2pt), radius: 2pt)[#text(size: 9pt)[*[#t]*]]
+
+// táblázatokban nincs sorkizárás
+#show table: set par(justify: false)
+// a táblázatok oldalhatáron átnyúlhatnak (kevesebb üres hely)
+
+Az átfedéses moduláció vizsgálatára moduláris szimulációs környezetet fejlesztettünk
+MATLAB nyelven. A környezet tetszőleges, paritásellenőrző mátrixával megadott bináris
+lineáris kóddal működik: az LDPC-kódokat MacKay-féle alist formátumban (@sec:alist), az
+LTE-turbókódokat (@sec:turbo) paritásellenőrző mátrixukat tartalmazó szöveges fájlként
+olvassa be. Így a két kódcsalád ugyanabban a láncban, ugyanazzal a dekóderrel
+vizsgálható. Az egyes átviteli eljárásokat egymástól független szimulációs magok
+valósítják meg, amelyeket egy közös vezérlő kötegelten, párhuzamosítva futtat a
+bemeneti mátrixok mindegyikére. Az eredmények fájlba kerülnek, az ábrák pedig ezekből,
+a szimuláció megismétlése nélkül készülnek (@fig:keretrendszer). Az ábrán szereplő
+függvények leírását és az eredményfájlok felépítését az @app:keretrendszer
+tartalmazza.
+
+#figure(
+  block(
+    fill: rgb("#f8fafc"),
+    stroke: 0.5pt + rgb("#cbd5e1"),
+    inset: 8pt,
+    radius: 6pt,
+    width: 100%,
+    align(center)[
+      #show raw: set text(size: 7.2pt)
+      #set par(leading: 0.4em)
+      #raw(
+        block: true,
+"┌───────────────────────────────────┐   ┌───────────────────────────────────┐
+│ LTE Turbo mátrixok (.txt)         │   │ LDPC mátrixok (.alist)            │
+│ → readTurboCode.m                 │   │ → read_alist_2.m                  │
+└─────────────────┬─────────────────┘   └─────────────────┬─────────────────┘
+                  └───────────────────┬───────────────────┘
+                                      ▼
+                  ┌───────────────────────────────────────┐
+                  │ H (sparse logical) paritásmátrix      │
+                  └───────────────────┬───────────────────┘
+                                      ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                   TÖMEGES VEZÉRLÉS: runSim.m / runMod.m                   │
+│     (Párhuzamos parfor szálkezelés és Worker-Chunking memóriavédelem)     │
+└─────────────────────────────────────┬─────────────────────────────────────┘
+                 ┌────────────────────┴───────────────────┐
+                 ▼                                        ▼
+┌─────────────────────────────────┐   ┌─────────────────────────────────────┐
+│    SZINKRON REFERENCIA MAGOK    │   │     ASZINKRON SIC LÁNCOLT MAGOK     │
+│ • Sync_LDPC.m    (QPSK, 2 b/s)  │   │ • AM2_4.m        (BPSK/QPSK lánc)   │
+│ • Sync_LDPC_16.m (16-QAM, 4 b/s)│   │ • AM4_16.m       (SP-kiosztás)      │
+│                                 │   │ • AM4_16_Gray.m  (Gray konstelláció)│
+│                                 │   │ • AM4_16_Soft.m  (Lágy LLR SIC)     │
+│                                 │   │ • AM4_16_Bidir.m (Kétirányú lánc)   │
+└────────────────┬────────────────┘   └───────────────────┬─────────────────┘
+                 └────────────────────┬───────────────────┘
+                                      ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│     Standardizált .mat adatkonténerek (ber, snrRange, n, K, place...)     │
+└─────────────────────────────────────┬─────────────────────────────────────┘
+                                      ▼
+                                      ▼
+                  ┌───────────────────────────────────────┐
+                  │                plotNK.m               │
+                  │  (N, K csoportosítás, tight scaling)  │
+                  └───────────────────┬───────────────────┘
+                                      ▼
+                  ┌───────────────────────────────────────┐
+                  │      Szemléltető .png grafikonok      │
+                  └───────────────────────────────────────┘"
+      
+      )
+    ]
+  ),
+  kind: image,
+  caption: [A korszerűsített, kétirányú bemenetet és kibővített modulációs magokat támogató szimulációs adatfolyam.]
+) <fig:keretrendszer>
+
+== Az alist formátum <sec:alist>
+
+Az .alist, mint fájlkiterjesztés egy nyílt forráskódú, tisztán szöveges ASCII formátum.
+Előnye, hogy nem tárolja a felesleges 0 biteket, kizárólag az 1-esek koordinátáit menti
+el, ezzel elkerülve a fájl méretének drasztikus növekedését (méretrobbanás). Ennek
+következményeként nagyméretű, de ritka (sparse) paritásellenőrző és generátormátrixok
+tárolására alkalmas. Struktúrája három jól elkülöníthető zónából áll: az első zóna a
+globális metaadatokat rögzíti ($N$ oszlop- és $M$ sorszám, valamint a `max_col_weight`
+és `max_row_weight` korlátok), a második a strukturális statisztikaként szolgáló pontos
+oszlop- és sorsúlytömböket adja meg, míg a fájl gerincét adó harmadik zóna a kétirányú
+gráf-topológiát részletezi két szimmetrikus, 1-alapú indexelésű alblokkban. Ez utóbbi
+az oszlop-sor, illetve a fix `max_row_weight` hosszúságig nullákkal feltöltött sor-oszlop
+kapcsolatokat tartalmazza.
+
+== Vizsgált átviteli eljárások <sec:magok>
+
+Minden szimulációs mag a @fig:blokkvazlat szerinti láncot valósítja meg: véletlen
+információs bitek, kódolás, moduláció, AWGN-csatorna, LLR-számítás, BP-dekódolás,
+végül a hibák megszámlálása. A magok csak a modulációban és a vevő felépítésében
+térnek el (@tab:magok).
+
+#figure(
+  table(
+    columns: (1.6fr, 1.1fr, 0.6fr),
+    inset: 6pt,
+    align: (left, left, center),
+    fill: (x, y) => if y == 0 { luma(230) } else { none },
+    [*Eljárás*], [*Szimulációs mag*], [*Leírás*],
+    [szinkron QPSK], [`Sync_LDPC`], [@sec:modulacio],
+    [szinkron 16-QAM (Gray)], [`Sync_LDPC_16`], [@sec:modulacio],
+    [átfedéses BPSK–QPSK], [`AM2_4`], [@sec:bpsk-qpsk],
+    [átfedéses 4-QAM–16-QAM, SP-kiosztás, kemény tisztítás], [`AM4_16`], [@sec:sajat-kiosztas],
+    [átfedéses 4-QAM–16-QAM, Gray-kiosztás], [`AM4_16_Gray`], [@sec:sajat-kiosztas],
+    [átfedéses 4-QAM–16-QAM, lágy tisztítás], [`AM4_16_Soft`], [@sec:tisztitas],
+    [átfedéses 4-QAM–16-QAM, kétirányú dekódolás], [`AM4_16_Bidir`], [@sec:ketiranyu],
+  ),
+  caption: [A vizsgált átviteli eljárások és az őket megvalósító szimulációs magok.],
+) <tab:magok>
+
+== Szimulációs paraméterek <sec:parameterek>
+
+A kódolást és a dekódolást minden mag a MATLAB Communications Toolbox beépített
+`ldpcEncode` és `ldpcDecode` függvényével végzi. Mindkettő csak a kód paritásellenőrző
+mátrixát igényli, ezért a turbókódokra is változtatás nélkül alkalmazható. A szimulációs paramétereket a
+@tab:parameterek foglalja össze; a kódokat a kódszóhosszal ($N$) és az információs
+bitek számával ($K$) azonosítjuk.
+
+#figure(
+  table(
+    columns: (1fr, 2fr),
+    inset: 6pt,
+    align: (left, left),
+    fill: (x, y) => if y == 0 { luma(230) } else { none },
+    [*Paraméter*], [*Érték*],
+    [vizsgált kódok], [23 LTE-turbókód ($N = 132$–$2076$, $K = 40$–$688$);
+     35 LDPC-kódok:  ($N = 32$–$840$, $K = 16$–$504$)],    
+    [lánchossz ($L$)], [ 20],
+    [futtatások (keretek) száma SNR-pontonként], [1000],
+    [SNR-tartomány], [5-20 SNR],
+    [SNR a vízszintes tengelyen], [$E_s \/ N_0$ (szimbólumonkénti jel-zaj viszony)],
+    [bithibaarány számítása], [az információs bitekre, a lánc mind az $L$ kódszavára
+      (a láncvégekkel együtt) átlagolva],
+  ),
+  caption: [A szimulációs paraméterek.],
+) <tab:parameterek>
+// = Eredmények <ch:eredmenyek>
+// =============================================================================
+// =============================================================================
+
+#import "@preview/cetz:0.5.2": canvas, draw
+#import "@preview/cetz-plot:0.1.4": chart
+= Szimulációs eredmények
+
+A fejezetben az átfedéses (aszinkron) szimbólummoduláció bithibaarányát (BER) vetjük össze a szinkron referenciaátvitelével, két kódcsaládon: a 3GPP LTE turbó kódok paritásellenőrző mátrixos reprezentációin (23 mátrix) és különböző sebességű és hosszúságú LDPC kódokon (35 mátrix). Mindkét családnál ugyanazt a _belief propagation_ (BP) dekódert használtuk, a lánchossz $L = 20$ volt, a szinkron referencia pedig ugyanazt a modulációt használja, mint az átfedéses lánc átfedett része (QPSK, illetve 16-QAM).
+
+Az átfedéses lánc $L$ kódszó átviteléhez a szinkron átvitelhez képest $(L+1)/L$-szer annyi szimbólumot használ, mivel a lánc két végén egy-egy félkódszót alacsonyabb rendű modulációval küldünk. Ez $L = 20$ mellett $10 log_10 (21 slash 20) approx$ 0,21 dB sebességveszteségnek felel meg. Mivel az ábrák vízszintes tengelyén a szimbólumonkénti jel-zaj viszony szerepel, ezt a különbséget az összehasonlításokban nem kompenzáltuk: legfeljebb ekkora eltolódás tudható be pusztán a sebességveszteségnek.Az SNR-pontonkénti 1000 futás mellett $10^(-6)$ alatti bithibaaránynál már csak elvétve jelentkezik hiba, ezért az ennél kisebb értékek csak tájékoztató jellegűek.
+
+== BPSK/QPSK átfedéses moduláció (AM2_4)
+
+Az AM2_4 eljárásban a kódszavak nem átfedett félkódszavát BPSK-val (1 bit/szimbólum), az átfedett részt QPSK-val (2 bit/szimbólum) moduláljuk. // TODO: hivatkozás a 3. fejezet levezetésére
+A 3. fejezetben megmutattuk, hogy Gray-kódolású QPSK esetén a valós és a képzetes komponensen ülő bitek egymástól függetlenek, ezért a SIC-kivonás nem változtatja meg a következő kódszó LLR-jeit. Az átfedéses lánc bitjei így pontosan ugyanolyan csatornát látnak, mint a szinkron QPSK-ban, vagyis strukturális nyereség nem várható. Eltérést csak a lánc két végén lévő, BPSK-val modulált félkódszavak és a fenti sebességveszteség okozhat, ami $L = 20$ mellett legfeljebb néhány tized dB.
+
+A mérések ezt igazolják. A mátrixon az AM2_4 és a szinkron QPSK görbéi a teljes vizsgált tartományban gyakorlatilag egybeesnek, az eltérés a legtöbb SNR-ponton a szimuláció statisztikai ingadozásán belül marad. (@fig:am24-osszesitett).
+A kódhossz növelésével mindkét eljárás vízesés-tartománya párhuzamosan meredekebbé válik.
+
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    column-gutter: 1.2em,
+    image("Plot_to_TDK/Osszesített_Turbo_2_4.png", width: 100%),
+    image("Plot_to_TDK/Osszesített_LDPC_2_4.png", width: 100%),
+  ),
+  caption: [Az AM2_4 és a szinkron QPSK összesített BER-görbéi: (bal) LTE turbó kódok, (jobb) LDPC kódok.],
+) <fig:am24-osszesitett>
+
+== 4-QAM/16-QAM átfedéses moduláció (AM4_16)
+
+Az AM4_16 eljárásban a lánc két végén lévő, nem átfedett félkódszavakat 4-QAM-mal (2 bit/szimbólum), az átfedett részeket 16-QAM-mal (4 bit/szimbólum) moduláljuk. Az eljárás négy változatát hasonlítottuk össze a szinkron 16-QAM referenciával:
++ `AM4_16`: halmazparticionáló (SP-) kiosztás, kemény döntésű visszakódolással és kivonással;
++ `AM4_16_Gray`: teljes Gray-kódolású 16-QAM, ahol a durva bitek az MSB-k, a finom bitek az LSB-k;
++ `AM4_16_Soft`: a priori demappelés: kivonás helyett az előző kódszó finom bitjeinek extrinsic LLR-jei szolgálnak a következő kódszó durva bitjeinek a priori információjaként;
++ `AM4_16_Bidir`: kétirányú dekódolás, amely a lánc mindkét végéről indul, itt is  halmazparticionáló (SP-) kiosztás, kemény döntésű visszakódolással és kivonással .
+
+A BPSK/QPSK esettel szemben itt az eredmények mátrixonként jelentősen eltérnek, és nincs olyan változat, amely minden kódra a legjobb lenne. Hogy melyik változat adja a legkisebb bithibaarányt, az a vizsgált kódtól függ (kódsebesség, kódhossz, a paritásellenőrző mátrix szerkezete); ennek pontos okait nem vizsgáltuk. Ugyanakkor a vizsgált mátrixok döntő többségénél legalább az egyik átfedéses változat felülmúlta a szinkron 16-QAM referenciát.
+
+=== LTE turbó kódok
+
+A 23 turbókód-mátrixból 20 esetben valamelyik átfedéses változat volt a legjobb, csak 2 esetben teljesített jobban a szinkron 16-QAM referencia és egy esetben volt döntetlne (@fig:am416-turbo, @fig:eredmenyek). Az átfedéses és a szinkron demoduláció között egy adott SNR-ponton mért legnagyobb javulás a szinkron érték egy tizenketede volt. Illetve voltak olyan kódok ahol a hibapadlót, ez mi esetünkben a "0 BER-t" jelentette ( ez természetesen csak a szimuláció korlátjai miatt 0 nálunk, ahogy fent említettük ez kódoktól függően valahol $10^-6$-on van a jelenlegi környezetben) 2 egész SNR-el hamarabb elértük 
+
+#figure(
+  image("Plot_to_TDK/Osszehasonlitas_Turbo_16.png", width: 84%),
+  caption: [Az AM4_16 változatok és a szinkron 16-QAM összesített BER-görbéi LTE turbó kódokra.],
+) <fig:am416-turbo>
+
+#let data = (
+  ([SP], 7),
+  ([Gray], 7),
+  ([Soft], 3),
+  ([Szinkron], 2),
+  ([Bidir], 3),
+  ([Döntetlen], 1),
+)
+
+#figure(
+  canvas({
+    draw.set-style(barchart: (bar-width: .2))
+    chart.barchart(
+      size: (5, 5),
+      label-key: 0,
+      value-key: 1,
+      x-tick-step: 1,
+      data,
+      x-label: [Mátrixok száma],
+      y-label: [Legjobb eljárás],
+    )
+  }),
+  caption: [A 23 turbókód-mátrix megoszlása aszerint, hogy melyik eljárás érte el a legkisebb bithibaarányt.],
+) <fig:eredmenyek>
+
+Az egyes változatok mind előfordulnak győztesként. Az SP-kiosztású alapváltozat és a Gray-kiosztás került a mezőny élére, egyaránt 7 mátrixnál bizonyúltak a legjobbbnak. Néhány jellemző példát mutat a @fig:am416-turbo-peldak.
+
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    gutter: 1.2em,
+    [#image("Plot_to_TDK/Turbo_Plot_16_TDK/Grafikon_N300_K96.png", width: 100%)
+     #text(size: 10pt)[(a) $N = 300, K = 96$]],
+    [#image("Plot_to_TDK/Turbo_Plot_16_TDK/Grafikon_N228_K72.png", width: 100%)
+     #text(size: 10pt)[(b) $N = 228, K = 72$]],
+    [#image("Plot_to_TDK/Turbo_Plot_16_TDK/Grafikon_N180_K56.png", width: 100%)
+     #text(size: 10pt)[(c) $N = 180, K = 56$]],
+    [#image("Plot_to_TDK/Turbo_Plot_16_TDK/Grafikon_N132_K40.png", width: 100%)
+     #text(size: 10pt)[(d) $N = 156, K = 48$]],
+  ),
+  caption: [Példák turbókód-mátrixokra, amelyeknél más-más AM4_16 változat a legjobb.],
+) <fig:am416-turbo-peldak>
+
+// Kihagyva (külön ábra volt egyetlen mátrixra): Plot_to_TDK/Turbo_Plot_16_All/Grafikon_N492_K160.png
+
+=== LDPC kódok
+
+A 35 vizsgált LDPC mátrixból 33 esetben legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát, és mind a négy változatra van példa, amelyben ő a legjobb. Az átfedéses és a szinkron demoduláció között egy adott SNR-ponton mért legnagyobb javulás a szinkron érték egy nyolcada volt. Illetve voltak olyan kódok ahol a hibapadlót SNR-el hamarabb elértük  (@fig:am416-ldpc-peldak).
+
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    gutter: 1.2em,
+    [#image("Plot_to_TDK/LDPC_Plot_16_TDK/Grafikon_N100_K50.png", width: 100%)
+     #text(size: 10pt)[(a) SP-kiosztás (`AM4_16`) a legjobb]],
+    [#image("Plot_to_TDK/LDPC_Plot_16_TDK/Grafikon_N120_K60.png", width: 100%)
+     #text(size: 10pt)[(b) Gray-kiosztás a legjobb]],
+    [#image("Plot_to_TDK/LDPC_Plot_16_TDK/Grafikon_N336_K168.png", width: 100%)
+     #text(size: 10pt)[(c) a priori demappelés (Soft) a legjobb]],
+    [#image("Plot_to_TDK/LDPC_Plot_16_TDK/Grafikon_N480_K240.png", width: 100%)
+     #text(size: 10pt)[(d) kétirányú dekódolás (Bidir) a legjobb]],
+  ),
+  caption: [Példák LDPC mátrixokra, amelyeknél más-más AM4_16 változat a legjobb.],
+) <fig:am416-ldpc-peldak>
+
+Figyelemre méltó, hogy a két eset, amelyben egyik átfedéses változat sem múlta felül a szinkron modulációt, kizárólag $R approx$ 0,6 kódsebesség mellett fordult elő (@fig:ldpc-r06). Ezzel szemben $R =$ 0,5 kódsebességnél valamennyi vizsgált mátrixra javulást értünk el a szinkron átvitelhez képest (@fig:ldpc-r05).
+
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 1.2em,
+  [#figure(
+    image("Plot_to_TDK/Osszehasonlitas_LDPC_R058--R066.png", width: 100%),
+    caption: [A két $R approx$ 0,6 sebességű mátrix, amelyeknél a szinkron 16-QAM a jobb.],
+  ) <fig:ldpc-r06>],
+  [#figure(
+    image("Plot_to_TDK/Osszehasonlitas_LDPC_R05.png", width: 100%),
+    caption: [Az $R =$ 0,5 sebességű LDPC mátrixokra kapott eredmények.],
+  ) <fig:ldpc-r05>],
+)
+#let data-ldpc = (
+  ([Soft], 14),
+  ([Döntetlen], 7),
+  ([Bidir], 7),
+  ([Gray], 4),
+  ([Szinkron], 2),
+  ([SP], 1),
+)
+
+#figure(
+  canvas({
+    draw.set-style(barchart: (bar-width: .2))
+    chart.barchart(
+      size: (5, 5),
+      label-key: 0,
+      value-key: 1,
+      x-tick-step: 2,
+      data-ldpc,
+      x-label: [Mátrixok száma],
+      y-label: [Legjobb eljárás],
+    )
+  }),
+  caption: [A 35 LDPC mátrix megoszlása aszerint, hogy melyik eljárás érte el a legkisebb bithibaarányt.],
+) <fig:eredmenyek-ldpc>
+== Összegzés
+
+A BPSK/QPSK átfedéses moduláció a várakozásoknak megfelelően a szinkron QPSK-val azonos teljesítményt nyújt: Gray-kódolású QPSK mellett a SIC-nek nincs mit kioltania, így az átfedés sem nyereséget, sem érdemi veszteséget nem okoz. A 4-QAM/16-QAM esetben viszont a vizsgált 58 mátrix döntő többségénél legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát-
+Megjegyezzük, hogy mátrixonként négy változat közül nincs egyértelműen domináns változat, magasabb modulációs rendeknél a kódhoz illesztett eljárásválasztás tűnik célravezetőnek.
+
+// = Összefoglalás és kitekintés <ch:osszefoglalas>
+
+= Összefoglalás és kitekintés <ch:osszefoglalas>
+
+Dolgozatunkban a szabadalmi bejelentésben @farkas2026szab leírt átfedéses modulációt
+vizsgáltuk egyfelhasználós AWGN-csatornán. Az eljárás egymást követő kódszavakat
+eltolva, egymásra szuperponálva modulál, és a vevőben szukcesszív
+interferencia-kioltással dekódolja őket. Ezzel a vezérelt aszinkronitás gondolatát
+@csiszar2021 az aszinkron többszörös hozzáférésű csatornáról egyetlen adóra
+ültettük át. Megmutattuk, hogy a BPSK–QPSK változat a tengelyek merőlegessége miatt
+nem adhat nyereséget, a 4-QAM–16-QAM változatban viszont a tisztítás a durva bitek
+döntési távolságát megkétszerezi. Összevetettük a halmazparticionáló és a
+Gray-bitkiosztást kemény és lágy tisztítással, bevezettük a kétirányú dekódolást, és
+megvizsgáltuk az eljárás árát: a lánchossztól függő sebességveszteséget és a
+hibaterjedést.
+
+A 23 LTE-turbókódon és 35 LDPC-kódon végzett szimulációk igazolták az elméleti
+várakozást: a BPSK–QPSK változat bithibaaránya a mérési pontosságon belül megegyezik a
+szinkron QPSK-átvitelével. A 4-QAM–16-QAM változatok közül a vizsgált 58 kód 93%-ánál
+legalább az egyik elérte vagy felülmúlta a szinkron 16-QAM átvitelt. Egy adott jel-zaj
+viszonynál a bithibaarány a szinkron érték akár tizenketted részére csökkent, és egyes
+kódoknál a szimuláció felbontási határát 2 dB-lel kisebb jel-zaj viszonynál értük el.
+A nyereség jellemzően a vízesés-tartomány felett, a bithibaarány gyorsabb csökkenésében
+jelentkezett, összhangban a hibaexponensre épülő várakozással. Minden kódra legjobb
+változat nincs: a turbókódoknál az SP- és a Gray-kiosztás, az LDPC-kódoknál a lágy
+tisztítás bizonyult leggyakrabban a legjobbnak, a szinkron átvitel pedig csak két,
+$R approx$ 0,6 sebességű LDPC-kódnál maradt jobb.
+
+A lépcsőzetes, több rétegen átívelő kódszóátvitelt a csúszóablakos szuperpozíciós
+kódolás @wang2014swsc @wang2020swsc @kim2016swcm már alkalmazza, ott azonban a
+cél a kétfelhasználós interferenciacsatorna kezelése, és egyfelhasználós csatornán
+inkább a szerkezet hátrányait emelik ki. Munkánk ezzel szemben azt vizsgálja, hogy
+interferencia nélkül, önmagában is növelheti-e a megbízhatóságot. A többszintű
+kódolástól @imai1977 abban tér el, hogy egyetlen kódot használ szintenkénti
+rátatervezés nélkül, és a szintek egymáshoz képest eltolt kódszavakhoz tartoznak.
+
+*Továbbfejlesztési irányok.*
+
+- *A kétirányú és a lágy dekódolás kombinálása.* A két módszer a hibaterjedés két
+  különböző okát kezeli: a kétirányú dekódolás a lánc hosszát felezi, a lágy
+  tisztítás a bizonytalan döntések továbbadását mérsékli. Együttes alkalmazásuk a két
+  hatás összeadódását ígéri.
+- *Új csatornakódolók tesztelése.* Hosszú, kapacitást közelítő kódoknál az
+  átfedéses lánc a kölcsönös információ szintjén nem nyerhet; a nyereség rövid kódoknál
+  és nagy jel-zaj viszonynál várható.
+- *Belief propagation eljárás módosítása*, olyan módon, hogy az első részhez tartozó szimbólumok $bold(c)_k^1$, nagyobb súllyal számítsanak, mint a második részhez tartozó szimbólumok $bold(c)_k^2$
+// =====================================================================
+//  IRODALOMJEGYZÉK
+// =====================================================================
+#bibliography("refs.bib", title: "Irodalomjegyzék", style: "ieee")
+
+// =====================================================================
+//  MELLÉKLET
+// =====================================================================
+#counter(heading).update(0)
+#set heading(numbering: "A.1.")
+// a hosszú táblázatok oldalhatáron átnyúlhatnak
+#show figure.where(kind: table): set block(breakable: true)
+
+= Melléklet <app:keretrendszer>
+
+== A szimulációs keretrendszer részletei <app:modulok>
+
+A keretrendszer moduláris felépítésű: új modulációs eljárás vagy bemeneti formátum a
+vezérlő módosítása nélkül illeszthető be (@tab:modulok). A kódban a lánchossz neve `K`,
+ez a dolgozat $L$ jelölésének felel meg; az információs bitek számát ($K$) a kód `n`
+néven tárolja.
+
+#figure(
+  table(
+    columns: (1.25fr, 1.35fr, 2.4fr),
+    inset: 6pt,
+    align: (left, left, left),
+    fill: (x, y) => if y == 0 { luma(230) } else { none },
+    [*Modul*], [*Bemenet*], [*Feladat*],
+    [`readTurboCode`], [`.txt` fájl útvonala], [LTE-turbókód paritásellenőrző mátrixának
+      beolvasása, a `NaN` sorok szűrése, logikai ritka mátrixszá alakítás.],
+    [`read_alist_2`], [`.alist` fájl útvonala], [LDPC-kód beolvasása MacKay-féle alist
+      formátumból ritka paritásellenőrző mátrixba.],
+    [`Sync_LDPC`], [`H, maxFrames, snrRange`], [Szinkron QPSK-referencia (2 bit/szimbólum),
+      pontos LLR-számítással.],
+    [`Sync_LDPC_16`], [`H, maxFrames, snrRange`], [Szinkron 16-QAM-referencia
+      (4 bit/szimbólum).],
+    [`AM2_4`], [`H, maxFrames, K, snrRange`], [Átfedéses BPSK–QPSK lánc SIC-vevővel,
+      a hibák helyének naplózásával.],
+    [`AM4_16`], [`H, maxFrames, K, snrRange`], [Átfedéses 4-QAM–16-QAM lánc
+      SP-kiosztással és kemény tisztítással.],
+    [`AM4_16_Gray`], [`H, maxFrames, K, snrRange`], [Mint az `AM4_16`, Gray-kiosztással.],
+    [`AM4_16_Soft`], [`H, maxFrames, K, snrRange`], [Lágy tisztítás: kivonás helyett az
+      előző kódszó finom bitjeinek extrinsic LLR-je a priori információként szolgál.],
+    [`AM4_16_Bidir`], [`H, maxFrames, K, snrRange`], [Kétirányú dekódolás tükrözött
+      adóval: a lánc mindkét végéről indul a SIC.],
+    [`runMod`], [`funcName, H, ...`], [Egységes hívófelület: a név alapján meghívja a
+      kívánt magot, és az eredményt egységes struktúrába rendezi.],
+    [`runSim`], [`funcName, inDir, outDir`], [Kötegelt futtatás: a bemeneti mappa
+      minden mátrixára lefuttatja a magot, és elmenti az eredményfájlt.],
+    [`plotNK`], [`inputFolder, outputFolder`], [Az eredményfájlokból $N$ és $K$ szerint
+      csoportosított BER-ábrákat készít.],
+  ),
+  caption: [A keretrendszer moduljai.],
+) <tab:modulok>
+A szimulációk eredményei MATLAB `.mat` fájlokba kerülnek. Így az ábrák a többórás
+szimulációk megismétlése nélkül újrarajzolhatók, és egy megszakadt futás esetén a már
+elkészült mátrixok eredményei megmaradnak, mert minden mag lefutása után azonnal
+mentés történik. A fájlnevek sémája `[mátrix]_[eljárás].mat`, például
+`LTE_TC_N132_K40_AM4_16_Gray.mat`. A tárolt változókat a @tab:matfajl foglalja össze.
+
+#figure(
+  table(
+    columns: (1.3fr, 1fr, 2.7fr),
+    inset: 6pt,
+    align: (left, left, left),
+    fill: (x, y) => if y == 0 { luma(230) } else { none },
+    [*Változó*], [*Méret*], [*Jelentés*],
+    [`ber`], [$1 times M$], [A mért bithibaarány az $M$ SNR-pontban.],
+    [`snrRange`], [$1 times M$], [A szimulált jel-zaj viszonyok (dB).],
+    [`n`], [skalár], [Az információs bitek száma ($K$).],
+    [`BlockLengthHalf`], [skalár], [A kódszóhossz fele ($N \/ 2$).],
+    [`maxFrames`], [skalár], [A szimulált keretek száma SNR-pontonként.],
+    [`K`], [skalár], [Csak átfedéses eljárásnál: a lánchossz ($L$).],
+    [`place`], [$1 times L$], [Csak átfedéses eljárásnál: a hibák eloszlása a lánc
+      kódszavai között.],
+  ),
+  caption: [Az eredményfájlok változói.],
+) <tab:matfajl>
+
