@@ -1,6 +1,6 @@
 
 #let cim = "Átfedéses szimbólum moduláció és soros interferencia-kioltás vizsgálata korszerű csatornakódok esetén"
-#let szerzok = ("Szabó Lajos Dániel","Kertész Levente","Érsek Ágoston", "Gál Marcell")
+#let szerzok = ("Szabó Lajos Dániel","Kertész Levente","Érsek Ágoston", "Gál Marcell Benedek")
 #let konzulensek = ("Dr. Farkas Lóránt Ernő",)
 #let egyetem = "Budapesti Műszaki és Gazdaságtudományi Egyetem"
 #let kar = "Villamosmérnöki és Informatikai Kar" 
@@ -570,7 +570,7 @@ azt, hogy a nyereségért cserébe mit kell feláldozni.
 A rendszer felépítése a következő (@fig:blokkvazlat). Az adó $L$ darab, egyenként $2n$
 bit hosszú kódszót ($bold(c)_1, dots, bold(c)_L$) állít elő ugyanazzal a
 csatornakódolóval. Minden kódszót két, $n$ bites félre bontunk:
-$bold(c)_k = (bold(c)_k^((1)), bold(c)_k^((2)))$, ahol $bold(c)_k^1$ a páratlan  $bold(c)_k^1$ a páros bitek.
+$bold(c)_k = (bold(c)_k^1, bold(c)_k^2)$, ahol $bold(c)_k^1$ a páratlan  $bold(c)_k^2$ a páros bitek.
 Az átfedéses modulátor az egymást követő kódszavakat úgy képezi le, hogy a $k$-adik
 kódszó második fele $bold(c)_k^2$ és a $(k+1)$-edik kódszó első fele $bold(c)_(k+1)^1$ *ugyanazokon* a szimbólumokon
 osztozik. A vevő a láncot az egyik végéről kezdve kódszavanként dekódolja, és minden
@@ -751,7 +751,7 @@ Az algoritmusban szereplő LLR-képletek levezetése később következik
 #figure(
   image("abrak/vett_szoras.png", width: 60%),
   caption: [A vett szimbólumok. A lánc két végének 4-QAM blokkjai és a belső
-    16-QAM blokkok együtt jelennek meg. Vegyük észre, hogy a negyedek közepe és a 4QAM szimbólumok nem esnek egybe, az eltérés $2/sqrt(5)$],
+    16-QAM blokkok együtt jelennek meg. Vegyük észre, hogy a negyedek közepe és a 4QAM szimbólumok nem esnek egybe, az arányuk $2/sqrt(5)$],
 ) <fig:szoras>
 #figure(
   kind: "algoritmus", supplement: [algoritmus],
@@ -968,7 +968,7 @@ több információt hordoz, mint a Gray-kiosztás.
 *Különbség a többszintű kódolástól.* A többszintű kódolásban (MLC) @imai1977 egy
 szimbólum két szintje két különböző komponenskódhoz tartozik, ezért a rátákat
 szintenként külön kell megválasztani @wachsmann1999; a @tab:mi szerint 9 dB-en a
-SP-kiosztásnál a finom szint $0,98$, a durva $1,96$ bit/szimbólum rátát enged.
+SP-kiosztásnál a finom szint $0,97$, a durva $1,95$ bit/szimbólum rátát enged.
 Az átfedéses láncban ezzel szemben minden kódszó első fele a durva, második fele a
 finom szinten halad át, így minden kódszó egyenlő arányban látja mindkét szintet.
 Ideális kódra a feltétel ekkor egyetlen közös kódsebességre vonatkozik:
@@ -1360,10 +1360,10 @@ bitek számával ($K$) azonosítjuk.
     fill: (x, y) => if y == 0 { luma(230) } else { none },
     [*Paraméter*], [*Érték*],
     [vizsgált kódok], [23 LTE-turbókód ($N = 132$–$2076$, $K = 40$–$688$);
-     35 LDPC-kódok:  ($N = 32$–$840$, $K = 16$–$504$)],    
+     29 db LDPC-kód:  ($N = 32$–$840$, $K = 16$–$504$)],    
     [lánchossz ($L$)], [ 20],
     [futtatások (keretek) száma SNR-pontonként], [1000],
-    [SNR-tartomány], [5-20 SNR],
+    [SNR-tartomány], [5-20 dB],
     [SNR a vízszintes tengelyen], [$E_s \/ N_0$ (szimbólumonkénti jel-zaj viszony)],
     [bithibaarány számítása], [az információs bitekre, a lánc mind az $L$ kódszavára
       (a láncvégekkel együtt) átlagolva],
@@ -1378,7 +1378,7 @@ bitek számával ($K$) azonosítjuk.
 #import "@preview/cetz-plot:0.1.4": chart
 = Szimulációs eredmények
 
-A fejezetben az átfedéses (aszinkron) szimbólummoduláció bithibaarányát (BER) vetjük össze a szinkron referenciaátvitelével, két kódcsaládon: a 3GPP LTE turbó kódok paritásellenőrző mátrixos reprezentációin (23 mátrix) és különböző sebességű és hosszúságú LDPC kódokon (35 mátrix). Mindkét családnál ugyanazt a _belief propagation_ (BP) dekódert használtuk, a lánchossz $L = 20$ volt, a szinkron referencia pedig ugyanazt a modulációt használja, mint az átfedéses lánc átfedett része (QPSK, illetve 16-QAM).
+A fejezetben az átfedéses (aszinkron) szimbólummoduláció bithibaarányát (BER) vetjük össze a szinkron referenciaátvitelével, két kódcsaládon: a 3GPP LTE turbó kódok paritásellenőrző mátrixos reprezentációin (23 mátrix) és különböző sebességű és hosszúságú LDPC kódokon (29 mátrix). Mindkét családnál ugyanazt a _belief propagation_ (BP) dekódert használtuk, a lánchossz $L = 20$ volt, a szinkron referencia pedig ugyanazt a modulációt használja, mint az átfedéses lánc átfedett része (QPSK, illetve 16-QAM).
 
 Az átfedéses lánc $L$ kódszó átviteléhez a szinkron átvitelhez képest $(L+1)/L$-szer annyi szimbólumot használ, mivel a lánc két végén egy-egy félkódszót alacsonyabb rendű modulációval küldünk. Ez $L = 20$ mellett $10 log_10 (21 slash 20) approx$ 0,21 dB sebességveszteségnek felel meg. Mivel az ábrák vízszintes tengelyén a szimbólumonkénti jel-zaj viszony szerepel, ezt a különbséget az összehasonlításokban nem kompenzáltuk: legfeljebb ekkora eltolódás tudható be pusztán a sebességveszteségnek.Az SNR-pontonkénti 1000 futás mellett $10^(-6)$ alatti bithibaaránynál már csak elvétve jelentkezik hiba, ezért az ennél kisebb értékek csak tájékoztató jellegűek.
 
@@ -1412,7 +1412,7 @@ A BPSK/QPSK esettel szemben itt az eredmények mátrixonként jelentősen eltér
 
 === LTE turbó kódok
 
-A 23 turbókód-mátrixból 20 esetben valamelyik átfedéses változat volt a legjobb, csak 2 esetben teljesített jobban a szinkron 16-QAM referencia és egy esetben volt döntetlne (@fig:am416-turbo, @fig:eredmenyek). Az átfedéses és a szinkron demoduláció között egy adott SNR-ponton mért legnagyobb javulás a szinkron érték egy tizenketede volt. Illetve voltak olyan kódok ahol a hibapadlót, ez mi esetünkben a "0 BER-t" jelentette ( ez természetesen csak a szimuláció korlátjai miatt 0 nálunk, ahogy fent említettük ez kódoktól függően valahol $10^-6$-on van a jelenlegi környezetben) 2 egész SNR-el hamarabb elértük 
+A 23 turbókód-mátrixból 20 esetben valamelyik átfedéses változat volt a legjobb, 2 esetben a szinkron 16-QAM referencia teljesített jobban, egy esetben pedig döntetlen született (@fig:am416-turbo, @fig:eredmenyek). Egy adott SNR-ponton mérve a legnagyobb javulásnál az átfedéses eljárás bithibaaránya a szinkron érték tizenketted részére csökkent. Egyes kódoknál a szimuláció felbontási határát, ahol már nem észleltünk hibát (kb. $10^(-7)$), akár 2 dB-lel kisebb jel-zaj viszonynál értük el, mint a szinkron átvitellel.
 
 #figure(
   image("Plot_to_TDK/Osszehasonlitas_Turbo_16.png", width: 84%),
@@ -1457,7 +1457,7 @@ Az egyes változatok mind előfordulnak győztesként. Az SP-kiosztású alapvá
     [#image("Plot_to_TDK/Turbo_Plot_16_TDK/Grafikon_N180_K56.png", width: 100%)
      #text(size: 10pt)[(c) $N = 180, K = 56$]],
     [#image("Plot_to_TDK/Turbo_Plot_16_TDK/Grafikon_N132_K40.png", width: 100%)
-     #text(size: 10pt)[(d) $N = 156, K = 48$]],
+     #text(size: 10pt)[(d) $N = 132, K = 40$]],
   ),
   caption: [Példák turbókód-mátrixokra, amelyeknél más-más AM4_16 változat a legjobb.],
 ) <fig:am416-turbo-peldak>
@@ -1466,8 +1466,7 @@ Az egyes változatok mind előfordulnak győztesként. Az SP-kiosztású alapvá
 
 === LDPC kódok
 
-A 35 vizsgált LDPC mátrixból 33 esetben legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát, és mind a négy változatra van példa, amelyben ő a legjobb. Az átfedéses és a szinkron demoduláció között egy adott SNR-ponton mért legnagyobb javulás a szinkron érték egy nyolcada volt. Illetve voltak olyan kódok ahol a hibapadlót SNR-el hamarabb elértük  (@fig:am416-ldpc-peldak).
-
+A 29 vizsgált LDPC-mátrixból 27 esetben legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát, és mind a négy változatra van példa, amelyben ő a legjobb (@fig:am416-ldpc-peldak). Egy adott SNR-ponton mérve a legnagyobb javulásnál az átfedéses eljárás bithibaaránya a szinkron érték nyolcad részére csökkent. Egyes kódoknál a szimuláció felbontási határát (kb. $10^(-7)$) 1dB-lel kisebb jel-zaj viszonynál értük el, mint a szinkron átvitellel.
 #figure(
   grid(
     columns: (1fr, 1fr),
@@ -1499,12 +1498,12 @@ Figyelemre méltó, hogy a két eset, amelyben egyik átfedéses változat sem m
   ) <fig:ldpc-r05>],
 )
 #let data-ldpc = (
-  ([Soft], 14),
-  ([Döntetlen], 7),
-  ([Bidir], 7),
-  ([Gray], 4),
+  ([Soft], 11),
+  ([Döntetlen], 6),
+  ([Bidir], 5),
+  ([Gray], 3),
   ([Szinkron], 2),
-  ([SP], 1),
+  ([SP], 2),
 )
 
 #figure(
@@ -1520,11 +1519,11 @@ Figyelemre méltó, hogy a két eset, amelyben egyik átfedéses változat sem m
       y-label: [Legjobb eljárás],
     )
   }),
-  caption: [A 35 LDPC mátrix megoszlása aszerint, hogy melyik eljárás érte el a legkisebb bithibaarányt.],
+  caption: [A 29 LDPC mátrix megoszlása aszerint, hogy melyik eljárás érte el a legkisebb bithibaarányt.],
 ) <fig:eredmenyek-ldpc>
 == Összegzés
 
-A BPSK/QPSK átfedéses moduláció a várakozásoknak megfelelően a szinkron QPSK-val azonos teljesítményt nyújt: Gray-kódolású QPSK mellett a SIC-nek nincs mit kioltania, így az átfedés sem nyereséget, sem érdemi veszteséget nem okoz. A 4-QAM/16-QAM esetben viszont a vizsgált 58 mátrix döntő többségénél legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát-
+A BPSK/QPSK átfedéses moduláció a várakozásoknak megfelelően a szinkron QPSK-val azonos teljesítményt nyújt: Gray-kódolású QPSK mellett a SIC-nek nincs mit kioltania, így az átfedés sem nyereséget, sem érdemi veszteséget nem okoz. A 4-QAM/16-QAM esetben viszont a vizsgált 52 mátrix döntő többségénél legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát-
 Megjegyezzük, hogy mátrixonként négy változat közül nincs egyértelműen domináns változat, magasabb modulációs rendeknél a kódhoz illesztett eljárásválasztás tűnik célravezetőnek.
 
 // = Összefoglalás és kitekintés <ch:osszefoglalas>
@@ -1543,17 +1542,15 @@ Gray-bitkiosztást kemény és lágy tisztítással, bevezettük a kétirányú 
 megvizsgáltuk az eljárás árát: a lánchossztól függő sebességveszteséget és a
 hibaterjedést.
 
-A 23 LTE-turbókódon és 35 LDPC-kódon végzett szimulációk igazolták az elméleti
+A 23 LTE-turbókódon és 29 LDPC-kódon végzett szimulációk igazolták az elméleti
 várakozást: a BPSK–QPSK változat bithibaaránya a mérési pontosságon belül megegyezik a
-szinkron QPSK-átvitelével. A 4-QAM–16-QAM változatok közül a vizsgált 58 kód 93%-ánál
+szinkron QPSK-átvitelével. A 4-QAM–16-QAM változatok közül a vizsgált 52 kód 92%-ánál
 legalább az egyik elérte vagy felülmúlta a szinkron 16-QAM átvitelt. Egy adott jel-zaj
 viszonynál a bithibaarány a szinkron érték akár tizenketted részére csökkent, és egyes
 kódoknál a szimuláció felbontási határát 2 dB-lel kisebb jel-zaj viszonynál értük el.
 A nyereség jellemzően a vízesés-tartomány felett, a bithibaarány gyorsabb csökkenésében
 jelentkezett, összhangban a hibaexponensre épülő várakozással. Minden kódra legjobb
-változat nincs: a turbókódoknál az SP- és a Gray-kiosztás, az LDPC-kódoknál a lágy
-tisztítás bizonyult leggyakrabban a legjobbnak, a szinkron átvitel pedig csak két,
-$R approx$ 0,6 sebességű LDPC-kódnál maradt jobb.
+változat nincs.
 
 A lépcsőzetes, több rétegen átívelő kódszóátvitelt a csúszóablakos szuperpozíciós
 kódolás @wang2014swsc @wang2020swsc @kim2016swcm már alkalmazza, ott azonban a
