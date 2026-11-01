@@ -180,6 +180,7 @@ gyakorlatban is használható. Ezek a munkák a lépcsőzetes szerkezet előnyé
 többfelhasználós interferencia kezelésében látják; egyfelhasználós csatornán
 inkább a hátrányait, a hibaterjedést és a láncvégek miatti rátaveszteséget
 emelik ki @wang2020swsc. 
+
 Munkánk ezzel szemben az egyfelhasználós esetre
 összpontosít, és azt vizsgálja, megjelenik-e a vezérelt aszinkronitás
 hibaexponens-előnye @csiszar2021 a megbízhatóságban. A szabadalmi bejelentés
@@ -1269,7 +1270,7 @@ tartalmazza.
                   └───────────────────┬───────────────────┘
                                       ▼
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                   TÖMEGES VEZÉRLÉS: runSim.m / runMod.m                   │
+│                   TÖMEGES VEZÉRLÉS:  runSim.m / simuLDPC-m/  runMod.m     │
 │     (Párhuzamos parfor szálkezelés és Worker-Chunking memóriavédelem)     │
 └─────────────────────────────────────┬─────────────────────────────────────┘
                  ┌────────────────────┴───────────────────┐
@@ -1412,7 +1413,7 @@ A BPSK/QPSK esettel szemben itt az eredmények mátrixonként jelentősen eltér
 
 === LTE turbó kódok
 
-A 23 turbókód-mátrixból 20 esetben valamelyik átfedéses változat volt a legjobb, 2 esetben a szinkron 16-QAM referencia teljesített jobban, egy esetben pedig döntetlen született (@fig:am416-turbo, @fig:eredmenyek). Egy adott SNR-ponton mérve a legnagyobb javulásnál az átfedéses eljárás bithibaaránya a szinkron érték tizenketted részére csökkent. Egyes kódoknál a szimuláció felbontási határát, ahol már nem észleltünk hibát (kb. $10^(-7)$), akár 2 dB-lel kisebb jel-zaj viszonynál értük el, mint a szinkron átvitellel.
+A 23 turbókód-mátrixból 20 esetben valamelyik átfedéses változat volt a legjobb, 2 esetben a szinkron 16-QAM referencia teljesített jobban, egy esetben pedig döntetlen született (@fig:am416-turbo, @fig:eredmenyek). Egy adott SNR-ponton mérve a legnagyobb javulásnál az átfedéses eljárás bithibaaránya a szinkron érték tizenketted részére csökkent. Egyes kódoknál a szimuláció felbontási határát, ahol már nem észleltünk hibát (kb. $10^(-6)$), akár 2 dB-lel kisebb jel-zaj viszonynál értük el, mint a szinkron átvitellel.
 
 #figure(
   image("Plot_to_TDK/Osszehasonlitas_Turbo_16.png", width: 84%),
@@ -1466,7 +1467,7 @@ Az egyes változatok mind előfordulnak győztesként. Az SP-kiosztású alapvá
 
 === LDPC kódok
 
-A 29 vizsgált LDPC-mátrixból 27 esetben legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát, és mind a négy változatra van példa, amelyben ő a legjobb (@fig:am416-ldpc-peldak). Egy adott SNR-ponton mérve a legnagyobb javulásnál az átfedéses eljárás bithibaaránya a szinkron érték nyolcad részére csökkent. Egyes kódoknál a szimuláció felbontási határát (kb. $10^(-7)$) 1dB-lel kisebb jel-zaj viszonynál értük el, mint a szinkron átvitellel.
+A 29 vizsgált LDPC-mátrixból 27 esetben legalább az egyik átfedéses változat elérte vagy felülmúlta a szinkron 16-QAM referenciát, és mind a négy változatra van példa, amelyben ő a legjobb (@fig:am416-ldpc-peldak). Egy adott SNR-ponton mérve a legnagyobb javulásnál az átfedéses eljárás bithibaaránya a szinkron érték nyolcad részére csökkent. Egyes kódoknál a szimuláció felbontási határát (kb. $10^(-6)$) 1dB-lel kisebb jel-zaj viszonynál értük el, mint a szinkron átvitellel.
 #figure(
   grid(
     columns: (1fr, 1fr),
