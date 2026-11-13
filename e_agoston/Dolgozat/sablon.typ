@@ -135,7 +135,7 @@
   align: horizon,          // függőlegesen középre igazít (top = felülre)
   [
     - Matlab
-    - Turbó és LDPC kódok paritásellenörz mátrixaik
+    - Turbó és LDPC kód ellenőrző mátrix
     - rtpu.de
       - H mátrixok letöltése $arrow$ mappákba rendezés
     - alist/txt file-ban $H$-mx $arrow$ $dots$ $arrow$ mat file
