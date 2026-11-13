@@ -365,7 +365,22 @@
 #align(center, szimulacios-folyamatabra())
 #v(1fr)
 = Az eredmények
-== Bevezetés
+
+== BPSK-QPSK (AM2_4)
+
+  #align(horizon, grid(
+  columns: (1fr, 1fr), // Két egyenlő szélességű oszlop
+  gutter: 1.2em,
+  align: horizon, [
+    - Hasonló eredmények a szinkron és az aszinkron modulációkra
+    - Nagyobb mátrix $arrow$ meredekebb görbe
+  ],
+    figure(
+      image("Osszesített_Turbo_2_4.png", width: 88%),
+      caption: text(size: 14pt)[Turbó kódok aggregált ábrája],
+    )
+  ))
+== Eredménydiverzitás (AM4_16)
 #align(horizon, grid(
   columns: (1fr, 1fr),
   gutter: 1cm,
@@ -373,26 +388,46 @@
   [
     - 23 Tudbó kód, 29 LDPC kód
     - SNR-BER koordinátarendszerben ábrázolás
-    - Ha a görbe hamarabb tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
   ],
-  image("assets/image-7.png", width: 100%),
+  image("assets/Grafikon_N300_K96.png", width: 100%),
 ))
-== BPSK-QPSK (AM2_4)
-- Hasonló eredmények a szinkron és az aszinkron modulációkra
-- Nagyobb mátrix $arrow$ meredekebb görbe
-
-  #grid(
-  columns: (1fr, 1fr), // Két egyenlő szélességű oszlop
-  gutter: 1.2em,
-    figure(
-      image("assets/Osszehasonlitas_LDPC_R05.png", width: 99%),
-      caption: text(size: 14pt)[LDPC kódok aggregált ábrája],
-    ),
-    figure(
-      image("Osszesített_Turbo_2_4.png", width: 88%),
-      caption: text(size: 14pt)[Turbó kódok aggregált ábrája],
-    ),
-  )
+== Eredménydiverzitás (AM4_16)
+#align(horizon, grid(
+  columns: (1fr, 1fr),
+  gutter: 1cm,
+  align: horizon,
+  [
+    - 23 Tudbó kód, 29 LDPC kód
+    - SNR-BER koordinátarendszerben ábrázolás
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+  ],
+  image("assets/Grafikon_N228_K72.png", width: 100%),
+))
+== Eredménydiverzitás (AM4_16)
+#align(horizon, grid(
+  columns: (1fr, 1fr),
+  gutter: 1cm,
+  align: horizon,
+  [
+    - 23 Tudbó kód, 29 LDPC kód
+    - SNR-BER koordinátarendszerben ábrázolás
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+  ],
+  image("assets/Grafikon_N180_K56.png", width: 100%),
+))
+== Eredménydiverzitás (AM4_16)
+#align(horizon, grid(
+  columns: (1fr, 1fr),
+  gutter: 1cm,
+  align: horizon,
+  [
+    - 23 Tudbó kód, 29 LDPC kód
+    - SNR-BER koordinátarendszerben ábrázolás
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+  ],
+  image("assets/Grafikon_N132_K40.png", width: 100%),
+))
 == 4QAM-16QAM (AM4_16)
 - Érdekesebb eredmények
 - 4 fajta szimbólum modulációs módszer
