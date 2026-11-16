@@ -382,43 +382,43 @@
     - SNR-BER koordinátarendszerben ábrázolás
     - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
   ],
-  image("assets/Grafikon_N300_K96.png", width: 100%),
-))
-== Eredménydiverzitás (AM4_16)
-#align(horizon, grid(
-  columns: (1fr, 1fr),
-  gutter: 1cm,
-  align: horizon,
-  [
-    - 23 Tudbó kód, 29 LDPC kód
-    - SNR-BER koordinátarendszerben ábrázolás
-    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
-  ],
-  image("assets/Grafikon_N228_K72.png", width: 100%),
-))
-== Eredménydiverzitás (AM4_16)
-#align(horizon, grid(
-  columns: (1fr, 1fr),
-  gutter: 1cm,
-  align: horizon,
-  [
-    - 23 Tudbó kód, 29 LDPC kód
-    - SNR-BER koordinátarendszerben ábrázolás
-    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
-  ],
-  image("assets/Grafikon_N180_K56.png", width: 100%),
-))
-== Eredménydiverzitás (AM4_16)
-#align(horizon, grid(
-  columns: (1fr, 1fr),
-  gutter: 1cm,
-  align: horizon,
-  [
-    - 23 Tudbó kód, 29 LDPC kód
-    - SNR-BER koordinátarendszerben ábrázolás
-    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
-  ],
   image("assets/Grafikon_N132_K40.png", width: 100%),
+))
+== Eredménydiverzitás (AM4_16)
+#align(horizon, grid(
+  columns: (1fr, 1fr),
+  gutter: 1cm,
+  align: horizon,
+  [
+    - 23 Tudbó kód, 29 LDPC kód
+    - SNR-BER koordinátarendszerben ábrázolás
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+  ],
+  image("asstes/Grafikon_N156_K48.png", width: 100%),
+))
+== Eredménydiverzitás (AM4_16)
+#align(horizon, grid(
+  columns: (1fr, 1fr),
+  gutter: 1cm,
+  align: horizon,
+  [
+    - 23 Tudbó kód, 29 LDPC kód
+    - SNR-BER koordinátarendszerben ábrázolás
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+  ],
+  image("assets/Grafikon_N276_K88.png", width: 100%),
+))
+== Eredménydiverzitás (AM4_16)
+#align(horizon, grid(
+  columns: (1fr, 1fr),
+  gutter: 1cm,
+  align: horizon,
+  [
+    - 23 Tudbó kód, 29 LDPC kód
+    - SNR-BER koordinátarendszerben ábrázolás
+    - Ha a görbe korábbi SNR-nél, vagy ugyanazon SNR-en, de kisebb BER-rel tűnik el, \ annak a kódnak jobb a hibajavítási képessége
+  ],
+  image("assets/Grafikon_N372_K120.png", width: 100%),
 ))
 == 4QAM-16QAM (AM4_16)
 - Érdekesebb eredmények
