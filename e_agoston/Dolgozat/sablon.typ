@@ -111,14 +111,6 @@
 // ============================================================
 
 #show: slides.with(footer-text: [BME – TDK])
-
-#title-slide(
-  [A szimulációs környezet, folyamat és az eredmények],
-  subtitle: [Aszinkron moduláció szukcesszív dekódolással],
-  author: [Én te meg ő],
-  date: [2026.11.18.],
-)
-
 = A szimulációs környezet és folyamat
 
 == A környezet és a folyamat
@@ -135,8 +127,8 @@
   align: horizon,          // függőlegesen középre igazít (top = felülre)
   [
     - Matlab
-    - Turbó és LDPC kód ellenőrző mátrix
-    - rtpu.de
+    - Turbó és LDPC kód paritásellenőrző mátrix
+    - RPTU Kaiserslautern-Landau
       - H mátrixok letöltése $arrow$ mappákba rendezés
     - alist/txt file-ban $H$-mx $arrow$ $dots$ $arrow$ mat file
       - mat file-ok felépítése:
