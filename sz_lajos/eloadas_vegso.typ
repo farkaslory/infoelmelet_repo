@@ -959,9 +959,9 @@
     - *lágy:* valószínűség döntés helyett
   ],
   kartya([Eredmények], zold)[
-    - BPSK–QPSK: a szinkron és az aszinkron hasonló
+    - BPSK–QPSK: a szinkron és az aszinkron megegyező
     - 4/16-QAM: kódfüggő eredmények
-    - #highlight(fill: rgb("#fff3cd"))[TODO: a fő eredmény]
+    - Az eljárás egy vevő és egy adó esetén is növelheti a megbízhatóságot
   ],
   kartya([Ár és háttér], luma(110))[
     - ráta: $L \/ (L + 1)$

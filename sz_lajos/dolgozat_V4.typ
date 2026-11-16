@@ -1422,8 +1422,8 @@ A 23 turbókód-mátrixból 20 esetben valamelyik átfedéses változat volt a l
 
 #let data = (
   ([SP], 7),
-  ([Gray], 7),
-  ([Soft], 3),
+  ([Gray], 6),
+  ([Soft], 4),
   ([Szinkron], 2),
   ([Bidir], 3),
   ([Döntetlen], 1),
@@ -1500,9 +1500,9 @@ Figyelemre méltó, hogy a két eset, amelyben egyik átfedéses változat sem m
 )
 #let data-ldpc = (
   ([Soft], 11),
-  ([Döntetlen], 6),
-  ([Bidir], 5),
-  ([Gray], 3),
+  ([Döntetlen], 5),
+  ([Bidir], 4),
+  ([Gray], 5),
   ([Szinkron], 2),
   ([SP], 2),
 )
