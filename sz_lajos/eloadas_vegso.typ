@@ -115,7 +115,7 @@
   footer: self => self.info.institution,
   config-info(
     title: [Átfedéses szimbólum moduláció és soros interferencia-kioltás vizsgálata korszerű csatornakódok esetén],
-    author: [Én te meg ő], // TODO
+    author: [Szabó Lajos, Kertész Levente, Érsek Ágoston, Gál Marcell],
     date: [2026],
     institution: [BME – TDK],
   ),
@@ -940,11 +940,11 @@
 
 == Összefoglalás
 
-#let kartya(cim, szin, tartalom) = block(width: 100%, height: 4.3cm, fill: szin.lighten(88%),
-  stroke: (top: 3pt + szin), inset: 0.7em, radius: (bottom: 6pt))[
-  #text(fill: szin, weight: "bold")[#cim]
-  #v(0.1em)
-  #set text(size: 16pt)
+#let kartya(cim, szin, tartalom) = grid.cell(fill: szin.lighten(88%),
+  stroke: (top: 3pt + szin), inset: (x: 0.7em, y: 0.5em))[
+  #text(fill: szin, weight: "bold", size: 18pt)[#cim]
+  #set text(size: 14pt)
+  #set list(spacing: 0.5em)
   #tartalom
 ]
 
@@ -980,4 +980,7 @@
   Az eredmények: BPSK–QPSK-nál a szinkron és az aszinkron moduláció hasonlóan teljesít, 4/16-QAM-nál az eredmény kódfüggő. [TODO: a fő számszerű eredmény]
   Az ára egy L/(L+1)-es rátaveszteség, a szerkezet pedig az irodalomban interferenciacsatornára már ismert – mi egyfelhasználós csatornán vizsgáltuk.
   A fő üzenet: a tisztítás csak akkor ér valamit, ha a finom bitek ismerete széthúzza a durva bitek jelöltjeit.
+]
+#focus-slide[
+  #text(size: 40pt, weight: "bold")[Köszönjük a figyelmet!]
 ]
